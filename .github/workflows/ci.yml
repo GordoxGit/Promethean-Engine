@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+jobs:
+  build-and-test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        build_type: [Debug, Release]
+    steps:
+      - uses: actions/checkout@v3
+      - uses: lukka/setup-cmake@v1
+      - name: Cache vcpkg
+        uses: actions/cache@v3
+        with:
+          path: |
+            ${{ github.workspace }}/vcpkg
+            ${{ github.workspace }}/build/vcpkg_installed
+          key: ${{ runner.os }}-vcpkg-${{ hashFiles('vcpkg.json') }}
+          restore-keys: ${{ runner.os }}-vcpkg-
+      - name: Configure
+        run: cmake --preset ${{ matrix.build_type == 'Debug' && 'debug' || 'release' }}
+      - name: Build
+        run: cmake --build --preset ${{ matrix.build_type == 'Debug' && 'debug' || 'release' }}
+      - name: Test
+        run: ctest --preset ${{ matrix.build_type == 'Debug' && 'debug' || 'release' }}
+      - name: Upload executable
+        if: matrix.build_type == 'Release'
+        uses: actions/upload-artifact@v3
+        with:
+          name: PrometheanEngine-${{ runner.os }}
+          path: build/${{ matrix.build_type == 'Debug' && 'debug' || 'release' }}/src/promethean-engine${{ matrix.os == 'windows-latest' && '.exe' || '' }}
