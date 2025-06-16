@@ -3,7 +3,7 @@
     "version-string": "0.1.0",
     "description": "Minimal 2D engine using SDL2",
     "dependencies": [
-        "sdl2",
+        "sdl2[core,gles]",
         "sdl2-image",
         "sdl2-mixer",
         "sdl2-ttf",

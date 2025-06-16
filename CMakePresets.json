@@ -1,0 +1,26 @@
+{
+  "version": 3,
+  "configurePresets": [
+    {
+      "name": "android-arm64-v8a",
+      "displayName": "Android arm64-v8a",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build-android",
+      "cacheVariables": {
+        "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/vcpkg/scripts/buildsystems/vcpkg.cmake",
+        "VCPKG_CHAINLOAD_TOOLCHAIN_FILE": "$env{ANDROID_NDK_HOME}/build/cmake/android.toolchain.cmake",
+        "VCPKG_TARGET_TRIPLET": "arm64-android",
+        "ANDROID_ABI": "$env{ANDROID_ABI}",
+        "ANDROID_PLATFORM": "android-21",
+        "ANDROID_STL": "c++_shared",
+        "CMAKE_BUILD_TYPE": "$env{BUILD_TYPE}"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "android-arm64-v8a",
+      "configurePreset": "android-arm64-v8a"
+    }
+  ]
+}
