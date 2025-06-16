@@ -63,6 +63,19 @@ jobs:
           fi
         shell: bash
 
+      # 6.5. Install Linux build dependencies
+      - name: Install Linux build dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            autoconf \
+            automake \
+            libtool \
+            pkg-config \
+            build-essential
+        shell: bash
+
       # 7. Bootstrap vcpkg si nécessaire
       - name: Bootstrap vcpkg
         if: steps.check_vcpkg.outputs.vcpkg_exists == 'true'
