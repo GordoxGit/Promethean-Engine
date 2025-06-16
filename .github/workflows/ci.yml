@@ -167,6 +167,7 @@ jobs:
         run: |
           echo "y" | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --install "ndk;25.2.9519653"
           echo "ANDROID_NDK_HOME=$ANDROID_HOME/ndk/25.2.9519653" >> $GITHUB_ENV
+          echo "Using NDK at $ANDROID_HOME/ndk/25.2.9519653"
 
       - name: Cache Gradle
         uses: actions/cache@v4
@@ -178,15 +179,14 @@ jobs:
 
       - name: Configure CMake for Android
         run: |
-          cmake -B build-android \
-                -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK_HOME/build/cmake/android.toolchain.cmake \
-                -DANDROID_ABI=${{ matrix.abi }} \
-                -DANDROID_PLATFORM=android-21 \
-                -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
-                -DANDROID_STL=c++_shared
+          export ANDROID_ABI=${{ matrix.abi }}
+          export BUILD_TYPE=${{ matrix.build_type }}
+          cmake --preset android-arm64-v8a
+          cmake --version
+          echo "NDK path: $ANDROID_NDK_HOME"
 
       - name: Build Android
-        run: cmake --build build-android --config ${{ matrix.build_type }}
+        run: cmake --build --preset android-arm64-v8a --parallel 4
 
       - name: Upload Android artifacts
         uses: actions/upload-artifact@v4
