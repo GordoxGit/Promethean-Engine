@@ -198,3 +198,7 @@ Voir le fichier `LICENSE`.
 ---
 
 **Promethean Engine** – Le socle natif, modulaire et moderne pour créer tes propres jeux 2D système-oriented, sur Windows et Android.
+## Build (quick)
+```bash
+cmake -B build && cmake --build build
+```
