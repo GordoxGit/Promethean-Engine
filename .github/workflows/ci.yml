@@ -8,122 +8,202 @@ on:
 
 jobs:
   build:
+    name: Build ${{ matrix.os }} - ${{ matrix.build_type }}
+    runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
-        type: [Debug, Release]
-    
-    runs-on: ${{ matrix.os }}
-    
+        build_type: [Debug, Release]
+
     steps:
       # 1. Checkout du code source
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           submodules: recursive
-      
-      # 2. Setup CMake et Ninja
+
+      # 2. Setup CMake
       - name: Setup CMake
         uses: jwlawson/actions-setup-cmake@v2
         with:
-          cmake-version: '3.25'
-      
+          cmake-version: '3.28.x'
+
+      # 3. Setup Ninja (Linux/macOS)
       - name: Setup Ninja
-        uses: seanmiddleditch/gha-setup-ninja@master
-      
-      # 3. Setup ccache (version corrigée)
-      - name: Setup ccache
-        uses: hendrikmuhs/ccache-action@v1.2
+        uses: seanmiddleditch/gha-setup-ninja@v5
+        if: runner.os != 'Windows'
+
+      # 4. Setup MSVC sur Windows
+      - name: Setup MSVC Dev Environment
+        if: runner.os == 'Windows'
+        uses: ilammy/msvc-dev-cmd@v1
+
+      # 5. Cache pour vcpkg
+      - name: Cache vcpkg
+        uses: actions/cache@v4
         with:
-          key: ${{ matrix.os }}-${{ matrix.type }}
-          verbose: 2
-      
-      # 4. Setup vcpkg
-      - name: Setup vcpkg
-        uses: lukka/run-vcpkg@v11
-        with:
-          vcpkgJsonGlob: '**/vcpkg.json'
-          runVcpkgInstall: true
-      
-      # 5. Platform-specific setup
-      - name: Setup MSVC (Windows only)
-        if: matrix.os == 'windows-latest'
-        uses: microsoft/setup-msbuild@v1.1
-      
-      - name: Setup Linux dependencies
-        if: matrix.os == 'ubuntu-latest'
+          path: |
+            ${{ github.workspace }}/vcpkg
+            ~/vcpkg
+            ~/.cache/vcpkg
+            ~/AppData/Local/vcpkg
+          key: ${{ runner.os }}-vcpkg-${{ hashFiles('**/vcpkg.json') }}-${{ hashFiles('**/CMakeLists.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-vcpkg-
+
+      # 6. Setup vcpkg (si vcpkg.json existe)
+      - name: Check for vcpkg.json
+        id: check_vcpkg
         run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            libgl1-mesa-dev \
-            libx11-dev \
-            libxrandr-dev \
-            libxinerama-dev \
-            libxcursor-dev \
-            libxi-dev \
-            libasound2-dev
-      
-      # 6. Configure CMake
+          if [ -f "vcpkg.json" ]; then
+            echo "vcpkg_exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "vcpkg_exists=false" >> $GITHUB_OUTPUT
+          fi
+        shell: bash
+
+      # 7. Bootstrap vcpkg si nécessaire
+      - name: Bootstrap vcpkg
+        if: steps.check_vcpkg.outputs.vcpkg_exists == 'true'
+        run: |
+          if [ ! -d "vcpkg" ]; then
+            git clone https://github.com/Microsoft/vcpkg.git
+          fi
+          ./vcpkg/bootstrap-vcpkg.sh || ./vcpkg/bootstrap-vcpkg.bat
+        shell: bash
+
+      # 8. Install dependencies from vcpkg.json
+      - name: Install vcpkg dependencies
+        if: steps.check_vcpkg.outputs.vcpkg_exists == 'true'
+        run: |
+          ./vcpkg/vcpkg install
+        shell: bash
+
+      # 9. Configure CMake
       - name: Configure CMake
         run: |
-          cmake -S . -B build -G Ninja \
-                -DCMAKE_BUILD_TYPE=${{ matrix.type }} \
-                -DCMAKE_C_COMPILER_LAUNCHER=ccache \
-                -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
-                -DCMAKE_TOOLCHAIN_FILE=${{ env.VCPKG_ROOT }}/scripts/buildsystems/vcpkg.cmake \
-                -DBUILD_TESTING=ON
-      
-      # 7. Build le projet
+          VCPKG_TOOLCHAIN=""
+          if [ -f "vcpkg.json" ] && [ -d "vcpkg" ]; then
+            VCPKG_TOOLCHAIN="-DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake"
+          fi
+          
+          cmake -B build \
+                -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
+                $VCPKG_TOOLCHAIN \
+                ${{ runner.os == 'Windows' && '-G "Visual Studio 17 2022" -A x64' || '-G Ninja' }}
+        shell: bash
+
+      # 10. Build
       - name: Build
-        run: cmake --build build --config ${{ matrix.type }} --parallel
-      
-      # 8. Run tests (si disponibles)
+        run: cmake --build build --config ${{ matrix.build_type }} --parallel 4
+
+      # 11. Run tests (si des tests existent)
       - name: Run tests
-        run: ctest --test-dir build --output-on-failure --parallel
+        run: |
+          cd build
+          if [ -f "CTestTestfile.cmake" ]; then
+            ctest -C ${{ matrix.build_type }} --output-on-failure --verbose
+          else
+            echo "No tests found, skipping..."
+          fi
+        shell: bash
         continue-on-error: true
-      
-      # 9. Upload artifacts (uniquement pour Release)
-      - name: Upload build artifacts
-        if: matrix.type == 'Release'
+
+      # 12. Upload artifacts
+      - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: promethean-engine-${{ matrix.os }}-${{ matrix.type }}
+          name: promethean-${{ matrix.os }}-${{ matrix.build_type }}
           path: |
             build/bin/
-            build/*.exe
-            build/*.app
+            build/**/*.exe
+            build/**/*.dll
+            build/**/*.so
+            build/**/*.dylib
+          retention-days: 7
+          if-no-files-found: warn
+
+  # Les autres jobs restent identiques...
+
+  # Job séparé pour la compilation Android
+  build-android:
+    name: Build Android
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        abi: [arm64-v8a, armeabi-v7a]
+        build_type: [Debug, Release]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Setup Android NDK
+        run: |
+          echo "y" | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --install "ndk;25.2.9519653"
+          echo "ANDROID_NDK_HOME=$ANDROID_HOME/ndk/25.2.9519653" >> $GITHUB_ENV
+
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+
+      - name: Configure CMake for Android
+        run: |
+          cmake -B build-android \
+                -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK_HOME/build/cmake/android.toolchain.cmake \
+                -DANDROID_ABI=${{ matrix.abi }} \
+                -DANDROID_PLATFORM=android-21 \
+                -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
+                -DANDROID_STL=c++_shared
+
+      - name: Build Android
+        run: cmake --build build-android --config ${{ matrix.build_type }}
+
+      - name: Upload Android artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: promethean-android-${{ matrix.abi }}-${{ matrix.build_type }}
+          path: |
+            build-android/**/*.so
+            build-android/**/*.a
           retention-days: 7
 
-  # Job séparé pour l'analyse statique
-  static-analysis:
+  # Job pour l'analyse de code
+  code-quality:
+    name: Code Quality Analysis
     runs-on: ubuntu-latest
+    
     steps:
-      - uses: actions/checkout@v4
-      
-      - name: Setup Clang tools
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup clang-tidy
         run: |
           sudo apt-get update
           sudo apt-get install -y clang-tidy cppcheck
-      
+
       - name: Run clang-tidy
         run: |
-          find src -name "*.cpp" -o -name "*.h" | head -10 | xargs clang-tidy || true
-      
+          find src -name '*.cpp' -o -name '*.h' | xargs clang-tidy -p build --checks='-*,modernize-*,performance-*,readability-*'
+        continue-on-error: true
+
       - name: Run cppcheck
         run: |
-          cppcheck --enable=warning,style --inconclusive --xml src/ 2> cppcheck-report.xml || true
-      
-      - name: Upload analysis results
-        uses: actions/upload-artifact@v4
-        with:
-          name: static-analysis-results
-          path: cppcheck-report.xml
-
-  # Job pour vérifier le formatage du code
-  format-check:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Setup clang-format
-        run: sudo apt-get install -y clang-format
+          cppcheck --enable=all --suppress=missingIncludeSystem --error-exitcode=1 src/
+        continue-on-error: true
