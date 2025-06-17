@@ -67,17 +67,12 @@ jobs:
           fi
         shell: bash
 
-      # 6.5. Install Linux build dependencies
-      - name: Install Linux build dependencies
+      # 6.5. Install Linux dependencies
+      - name: Install Linux dependencies
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y \
-            autoconf \
-            automake \
-            libtool \
-            pkg-config \
-            build-essential
+          sudo apt-get install -y ninja-build build-essential autoconf automake libtool pkg-config
         shell: bash
 
       # 7. Bootstrap vcpkg si nécessaire
@@ -87,7 +82,12 @@ jobs:
           if [ ! -d "vcpkg" ]; then
             git clone https://github.com/Microsoft/vcpkg.git
           fi
-          ./vcpkg/bootstrap-vcpkg.sh || ./vcpkg/bootstrap-vcpkg.bat
+          cd vcpkg
+          if [ "$RUNNER_OS" = "Windows" ]; then
+            ./bootstrap-vcpkg.bat
+          else
+            ./bootstrap-vcpkg.sh
+          fi
         shell: bash
 
       # 8. Install dependencies from vcpkg.json
@@ -172,15 +172,21 @@ jobs:
         run: |
           echo "y" | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --install "ndk;25.2.9519653"
           echo "ANDROID_NDK_HOME=$ANDROID_HOME/ndk/25.2.9519653" >> $GITHUB_ENV
-          echo "Using NDK at $ANDROID_HOME/ndk/25.2.9519653"
+          echo "CMAKE_ANDROID_NDK=$ANDROID_HOME/ndk/25.2.9519653" >> $GITHUB_ENV
 
       - name: Bootstrap vcpkg
         run: |
           if [ ! -d "vcpkg" ]; then
             git clone https://github.com/Microsoft/vcpkg.git
           fi
-          ./vcpkg/bootstrap-vcpkg.sh
-
+          cd vcpkg
+          if [ "$RUNNER_OS" = "Windows" ]; then
+            ./bootstrap-vcpkg.bat
+          else
+            ./bootstrap-vcpkg.sh
+          fi
+        shell: bash
+        
       - name: Install vcpkg dependencies
         run: |
           ./vcpkg/vcpkg install --x-manifest-root="${{ github.workspace }}" \
@@ -196,17 +202,18 @@ jobs:
 
       - name: Configure CMake for Android
         run: |
-          export ANDROID_ABI=${{ matrix.abi }}
-          export BUILD_TYPE=${{ matrix.build_type }}
-          cmake --preset android-arm64-v8a \
+          cmake -B build-android \
             -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake \
-            -DCMAKE_C_COMPILER=clang \
-            -DCMAKE_CXX_COMPILER=clang++
-          cmake --version
-          echo "NDK path: $ANDROID_NDK_HOME"
+            -DVCPKG_CHAINLOAD_TOOLCHAIN_FILE=$ANDROID_NDK_HOME/build/cmake/android.toolchain.cmake \
+            -DVCPKG_TARGET_TRIPLET=arm64-android \
+            -DANDROID_ABI=${{ matrix.abi }} \
+            -DANDROID_PLATFORM=android-21 \
+            -DANDROID_STL=c++_shared \
+            -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
+            -G Ninja
 
       - name: Build Android
-        run: cmake --build --preset android-arm64-v8a --parallel 4
+        run: cmake --build build-android --config ${{ matrix.build_type }} --parallel 4
 
       - name: Upload Android artifacts
         uses: actions/upload-artifact@v4
