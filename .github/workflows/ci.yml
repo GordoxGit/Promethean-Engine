@@ -8,7 +8,6 @@ on:
 
 env:
   CMAKE_VERSION: '3.28.x'
-  VCPKG_BINARY_SOURCES: "clear;x-gha,readwrite"
 
 jobs:
   build:
@@ -311,9 +310,7 @@ jobs:
       - name: Cache vcpkg (Android)
         uses: actions/cache@v4
         with:
-          path: |
-            ${{ github.workspace }}/vcpkg
-            ${{ github.workspace }}/vcpkg_installed
+          path: ${{ github.workspace }}/vcpkg-android
           key: vcpkg-android-${{ matrix.abi }}-${{ hashFiles('**/vcpkg.json') }}
           restore-keys: |
             vcpkg-android-${{ matrix.abi }}-
@@ -322,12 +319,13 @@ jobs:
       # Bootstrap vcpkg pour Android
       - name: Bootstrap vcpkg (Android)
         run: |
-          if [ ! -d "vcpkg" ]; then
-            echo "Cloning vcpkg for Android build..."
-            git clone https://github.com/Microsoft/vcpkg.git
+          VCPKG_DIR="vcpkg-android"
+          if [ ! -d "$VCPKG_DIR" ]; then
+            echo "Cloning vcpkg for Android build into $VCPKG_DIR..."
+            git clone https://github.com/Microsoft/vcpkg.git "$VCPKG_DIR"
           fi
           
-          cd vcpkg
+          cd "$VCPKG_DIR"
           
           if [ ! -f "vcpkg" ]; then
             echo "Bootstrapping vcpkg..."
@@ -349,24 +347,21 @@ jobs:
           
           echo "Installing dependencies for Android ${{ matrix.abi }} (triplet: $TRIPLET)..."
           
-          cd vcpkg
+          cd vcpkg-android
           
           # CORRECTION: Utiliser le mode manifest sans packages individuels
           echo "Installing dependencies from manifest for Android..."
           ./vcpkg install \
             --x-manifest-root="${{ github.workspace }}" \
-            --x-install-root="${{ github.workspace }}/vcpkg_installed" \
             --triplet=$TRIPLET \
             --debug \
             --feature-flags=-compilertracking || {
-            echo "Manifest install failed, disabling compiler tracking..."
+            echo "Manifest install failed, retrying..."
             ./vcpkg install \
               --x-manifest-root="${{ github.workspace }}" \
-              --x-install-root="${{ github.workspace }}/vcpkg_installed" \
               --triplet=$TRIPLET \
               --debug \
-              --feature-flags=-compilertracking \
-              --verbose
+              --feature-flags=-compilertracking
           }
 
       # Configuration CMake pour Android
@@ -388,7 +383,7 @@ jobs:
           fi
           
           # Verify toolchain files
-          VCPKG_TOOLCHAIN="${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake"
+          VCPKG_TOOLCHAIN="${{ github.workspace }}/vcpkg-android/scripts/buildsystems/vcpkg.cmake"
           ANDROID_TOOLCHAIN="$ANDROID_NDK_HOME/build/cmake/android.toolchain.cmake"
           
           if [ ! -f "$VCPKG_TOOLCHAIN" ]; then
