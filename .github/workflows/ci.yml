@@ -29,10 +29,14 @@ jobs:
         with:
           cmake-version: '3.28.x'
 
-      # 3. Setup Ninja (Linux/macOS)
+      # 3. Setup Ninja
       - name: Setup Ninja
         uses: seanmiddleditch/gha-setup-ninja@v5
+        if: runner.os == 'Windows'
+
+      - name: Install Ninja (Linux/macOS)
         if: runner.os != 'Windows'
+        run: sudo apt-get update && sudo apt-get install -y ninja-build
 
       # 4. Setup MSVC sur Windows
       - name: Setup MSVC Dev Environment
@@ -170,6 +174,18 @@ jobs:
           echo "ANDROID_NDK_HOME=$ANDROID_HOME/ndk/25.2.9519653" >> $GITHUB_ENV
           echo "Using NDK at $ANDROID_HOME/ndk/25.2.9519653"
 
+      - name: Bootstrap vcpkg
+        run: |
+          if [ ! -d "vcpkg" ]; then
+            git clone https://github.com/Microsoft/vcpkg.git
+          fi
+          ./vcpkg/bootstrap-vcpkg.sh
+
+      - name: Install vcpkg dependencies
+        run: |
+          ./vcpkg/vcpkg install --x-manifest-root="${{ github.workspace }}" \
+                                --x-install-root="${{ github.workspace }}/vcpkg_installed"
+
       - name: Cache Gradle
         uses: actions/cache@v4
         with:
@@ -182,7 +198,10 @@ jobs:
         run: |
           export ANDROID_ABI=${{ matrix.abi }}
           export BUILD_TYPE=${{ matrix.build_type }}
-          cmake --preset android-arm64-v8a
+          cmake --preset android-arm64-v8a \
+            -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake \
+            -DCMAKE_C_COMPILER=clang \
+            -DCMAKE_CXX_COMPILER=clang++
           cmake --version
           echo "NDK path: $ANDROID_NDK_HOME"
 
