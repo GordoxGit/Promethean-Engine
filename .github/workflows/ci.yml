@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [ main ]
 
+env:
+  CMAKE_VERSION: '3.28.x'
+  VCPKG_BINARY_SOURCES: "clear;x-gha,readwrite"
+
 jobs:
   build:
     name: Build ${{ matrix.os }} - ${{ matrix.build_type }}
@@ -22,11 +26,19 @@ jobs:
         with:
           submodules: recursive
 
+      - name: Export GitHub Actions cache environment variables
+        uses: actions/github-script@v7
+        with:
+          script: |
+            core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
+            core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
+
       - name: Setup CMake
         uses: jwlawson/actions-setup-cmake@v2
         with:
-          cmake-version: '3.28.x'
+          cmake-version: ${{ env.CMAKE_VERSION }}
 
+      # Installation des dépendances système optimisée par plateforme
       - name: Install system dependencies (Linux)
         if: runner.os == 'Linux'
         run: |
@@ -37,11 +49,17 @@ jobs:
             autoconf \
             automake \
             libtool \
-            pkg-config
+            pkg-config \
+            curl \
+            zip \
+            unzip \
+            tar \
+            git
 
       - name: Install system dependencies (macOS)
         if: runner.os == 'macOS'
-        run: brew install ninja
+        run: |
+          brew install ninja autoconf automake libtool pkg-config
 
       - name: Setup Ninja (Windows)
         if: runner.os == 'Windows'
@@ -51,70 +69,132 @@ jobs:
         if: runner.os == 'Windows'
         uses: ilammy/msvc-dev-cmd@v1
 
+      # Cache vcpkg optimisé avec binary sources
       - name: Cache vcpkg
         uses: actions/cache@v4
         with:
           path: |
             ${{ github.workspace }}/vcpkg
             ${{ github.workspace }}/vcpkg_installed
-          key: ${{ runner.os }}-vcpkg-${{ hashFiles('**/vcpkg.json') }}
+            ~/.cache/vcpkg
+          key: vcpkg-${{ runner.os }}-${{ hashFiles('**/vcpkg.json') }}-${{ hashFiles('**/.github/workflows/ci.yml') }}
           restore-keys: |
-            ${{ runner.os }}-vcpkg-
+            vcpkg-${{ runner.os }}-${{ hashFiles('**/vcpkg.json') }}-
+            vcpkg-${{ runner.os }}-
 
+      # Bootstrap vcpkg robuste
       - name: Bootstrap vcpkg
         run: |
           if [ ! -d "vcpkg" ]; then
+            echo "Cloning vcpkg..."
             git clone https://github.com/Microsoft/vcpkg.git
           fi
+          
           cd vcpkg
+          
+          # Update vcpkg to latest stable if needed
+          git fetch origin
+          
           if [ "$RUNNER_OS" = "Windows" ]; then
-            ./bootstrap-vcpkg.bat
+            if [ ! -f "vcpkg.exe" ]; then
+              echo "Bootstrapping vcpkg on Windows..."
+              ./bootstrap-vcpkg.bat
+            fi
           else
-            ./bootstrap-vcpkg.sh
+            if [ ! -f "vcpkg" ]; then
+              echo "Bootstrapping vcpkg on Unix..."
+              ./bootstrap-vcpkg.sh
+            fi
           fi
+          
+          # Verify vcpkg is working
+          ./vcpkg version
         shell: bash
 
+      # Installation des dépendances vcpkg avec retry
       - name: Install vcpkg dependencies
         shell: bash
         run: |
-          ./vcpkg/vcpkg install --x-manifest-root="${{ github.workspace }}" \
-                                --x-install-root="${{ github.workspace }}/vcpkg_installed"
+          cd vcpkg
+          
+          # Integrate vcpkg
+          ./vcpkg integrate install || true
+          
+          # Install dependencies with manifest
+          echo "Installing dependencies from manifest..."
+          ./vcpkg install \
+            --x-manifest-root="${{ github.workspace }}" \
+            --x-install-root="${{ github.workspace }}/vcpkg_installed" \
+            --debug || {
+            echo "First attempt failed, retrying with verbose output..."
+            ./vcpkg install \
+              --x-manifest-root="${{ github.workspace }}" \
+              --x-install-root="${{ github.workspace }}/vcpkg_installed" \
+              --debug \
+              --verbose
+          }
 
+      # Configuration CMake robuste multiplateforme
       - name: Configure CMake
         run: |
+          echo "Configuring CMake for $RUNNER_OS..."
+          
+          TOOLCHAIN_FILE="${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake"
+          
+          if [ ! -f "$TOOLCHAIN_FILE" ]; then
+            echo "Error: vcpkg toolchain file not found at $TOOLCHAIN_FILE"
+            exit 1
+          fi
+          
           if [ "$RUNNER_OS" = "Windows" ]; then
             cmake -B build \
                   -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
-                  -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake \
+                  -DCMAKE_TOOLCHAIN_FILE="$TOOLCHAIN_FILE" \
+                  -DVCPKG_TARGET_TRIPLET=x64-windows \
                   -G "Visual Studio 17 2022" -A x64
           else
             cmake -B build \
                   -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
-                  -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake \
+                  -DCMAKE_TOOLCHAIN_FILE="$TOOLCHAIN_FILE" \
                   -G Ninja
           fi
         shell: bash
 
+      # Build avec gestion d'erreur
       - name: Build
-        run: cmake --build build --config ${{ matrix.build_type }} --parallel 4
+        run: |
+          echo "Building project..."
+          cmake --build build --config ${{ matrix.build_type }} --parallel 4 --verbose
+        shell: bash
 
+      # Tests avec environnement headless
       - name: Run tests
         run: |
           cd build
+          
+          # Set up headless environment for Linux
+          if [ "$RUNNER_OS" = "Linux" ]; then
+            export SDL_VIDEODRIVER=dummy
+            export DISPLAY=:99
+          fi
+          
           if [ -f "CTestTestfile.cmake" ]; then
-            ctest -C ${{ matrix.build_type }} --output-on-failure --verbose
+            echo "Running tests..."
+            ctest -C ${{ matrix.build_type }} --output-on-failure --verbose --timeout 300
           else
-            echo "No tests found, skipping..."
+            echo "No tests found, skipping test execution"
           fi
         shell: bash
         continue-on-error: true
 
+      # Upload artifacts avec chemins corrects
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: promethean-${{ matrix.os }}-${{ matrix.build_type }}
           path: |
-            build/bin/
+            build/promethean*
+            build/${{ matrix.build_type }}/promethean*
             build/**/*.exe
             build/**/*.dll
             build/**/*.so
@@ -122,6 +202,7 @@ jobs:
           retention-days: 7
           if-no-files-found: warn
 
+  # Build Android entièrement revu
   build-android:
     name: Build Android (${{ matrix.abi }}, ${{ matrix.build_type }})
     runs-on: ubuntu-latest
@@ -146,46 +227,147 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
+      # Configuration Android NDK robuste
       - name: Setup Android NDK
         run: |
+          echo "Setting up Android NDK..."
+          
+          # Install NDK
           echo "y" | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --install "ndk;25.2.9519653"
-          echo "ANDROID_NDK_HOME=$ANDROID_HOME/ndk/25.2.9519653" >> $GITHUB_ENV
+          
+          # Set environment variables
+          NDK_PATH="$ANDROID_HOME/ndk/25.2.9519653"
+          echo "ANDROID_NDK_HOME=$NDK_PATH" >> $GITHUB_ENV
+          echo "ANDROID_NDK_ROOT=$NDK_PATH" >> $GITHUB_ENV
+          echo "NDK_ROOT=$NDK_PATH" >> $GITHUB_ENV
+          
+          # Verify NDK installation
+          if [ -d "$NDK_PATH" ]; then
+            echo "✅ Android NDK successfully installed at: $NDK_PATH"
+            ls -la "$NDK_PATH"
+          else
+            echo "❌ Android NDK installation failed"
+            exit 1
+          fi
 
+      # Installation des dépendances système pour Android
       - name: Install build dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y ninja-build build-essential autoconf automake libtool pkg-config
+          sudo apt-get install -y \
+            ninja-build \
+            build-essential \
+            autoconf \
+            automake \
+            libtool \
+            pkg-config \
+            curl \
+            zip \
+            unzip \
+            tar \
+            git
 
-      - name: Bootstrap vcpkg
+      # Cache vcpkg pour Android
+      - name: Cache vcpkg (Android)
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ github.workspace }}/vcpkg
+            ${{ github.workspace }}/vcpkg_installed
+          key: vcpkg-android-${{ matrix.abi }}-${{ hashFiles('**/vcpkg.json') }}
+          restore-keys: |
+            vcpkg-android-${{ matrix.abi }}-
+            vcpkg-android-
+
+      # Bootstrap vcpkg pour Android
+      - name: Bootstrap vcpkg (Android)
         run: |
           if [ ! -d "vcpkg" ]; then
+            echo "Cloning vcpkg for Android build..."
             git clone https://github.com/Microsoft/vcpkg.git
           fi
-          ./vcpkg/bootstrap-vcpkg.sh
+          
+          cd vcpkg
+          
+          if [ ! -f "vcpkg" ]; then
+            echo "Bootstrapping vcpkg..."
+            ./bootstrap-vcpkg.sh
+          fi
+          
+          # Verify vcpkg is working
+          ./vcpkg version
 
+      # Installation vcpkg pour Android avec triplet correct
       - name: Install vcpkg dependencies for Android
         run: |
-          TRIPLET=${{ matrix.abi == 'arm64-v8a' && 'arm64-android' || 'arm-android' }}
-          ./vcpkg/vcpkg install --x-manifest-root="${{ github.workspace }}" \
-                                --x-install-root="${{ github.workspace }}/vcpkg_installed" \
-                                --triplet=$TRIPLET
+          # Determine correct triplet
+          if [ "${{ matrix.abi }}" = "arm64-v8a" ]; then
+            TRIPLET="arm64-android"
+          else
+            TRIPLET="arm-android"
+          fi
+          
+          echo "Installing dependencies for Android ${{ matrix.abi }} (triplet: $TRIPLET)..."
+          
+          cd vcpkg
+          ./vcpkg install \
+            --x-manifest-root="${{ github.workspace }}" \
+            --x-install-root="${{ github.workspace }}/vcpkg_installed" \
+            --triplet=$TRIPLET \
+            --debug
 
+      # Configuration CMake pour Android
       - name: Configure CMake for Android
         run: |
-          TRIPLET=${{ matrix.abi == 'arm64-v8a' && 'arm64-android' || 'arm-android' }}
+          # Determine correct triplet
+          if [ "${{ matrix.abi }}" = "arm64-v8a" ]; then
+            TRIPLET="arm64-android"
+          else
+            TRIPLET="arm-android"
+          fi
+          
+          echo "Configuring CMake for Android ${{ matrix.abi }}..."
+          
+          # Verify NDK path
+          if [ ! -d "$ANDROID_NDK_HOME" ]; then
+            echo "Error: Android NDK not found at $ANDROID_NDK_HOME"
+            exit 1
+          fi
+          
+          # Verify toolchain files
+          VCPKG_TOOLCHAIN="${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake"
+          ANDROID_TOOLCHAIN="$ANDROID_NDK_HOME/build/cmake/android.toolchain.cmake"
+          
+          if [ ! -f "$VCPKG_TOOLCHAIN" ]; then
+            echo "Error: vcpkg toolchain not found at $VCPKG_TOOLCHAIN"
+            exit 1
+          fi
+          
+          if [ ! -f "$ANDROID_TOOLCHAIN" ]; then
+            echo "Error: Android toolchain not found at $ANDROID_TOOLCHAIN"
+            exit 1
+          fi
+          
+          # Configure CMake
           cmake -B build-android-${{ matrix.abi }} \
-                -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake \
-                -DVCPKG_CHAINLOAD_TOOLCHAIN_FILE=$ANDROID_NDK_HOME/build/cmake/android.toolchain.cmake \
-                -DVCPKG_TARGET_TRIPLET=$TRIPLET \
+                -DCMAKE_TOOLCHAIN_FILE="$VCPKG_TOOLCHAIN" \
+                -DVCPKG_CHAINLOAD_TOOLCHAIN_FILE="$ANDROID_TOOLCHAIN" \
+                -DVCPKG_TARGET_TRIPLET="$TRIPLET" \
                 -DANDROID_ABI=${{ matrix.abi }} \
                 -DANDROID_PLATFORM=android-21 \
                 -DANDROID_STL=c++_shared \
+                -DANDROID_CPP_FEATURES="rtti exceptions" \
                 -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
+                -DCMAKE_ANDROID_NDK="$ANDROID_NDK_HOME" \
                 -G Ninja
 
+      # Build Android
       - name: Build Android
-        run: cmake --build build-android-${{ matrix.abi }} --parallel 4
+        run: |
+          echo "Building for Android ${{ matrix.abi }}..."
+          cmake --build build-android-${{ matrix.abi }} --parallel 4 --verbose
 
+      # Upload artifacts Android
       - name: Upload Android artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -193,4 +375,53 @@ jobs:
           path: |
             build-android-${{ matrix.abi }}/**/*.so
             build-android-${{ matrix.abi }}/**/*.a
+            build-android-${{ matrix.abi }}/promethean*
           retention-days: 7
+
+  # Job d'analyse de code amélioré
+  code-quality:
+    name: Code Quality Analysis
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install analysis tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang-tidy cppcheck
+
+      - name: Run clang-tidy
+        run: |
+          if [ -d "src" ]; then
+            echo "Running clang-tidy..."
+            find src -name '*.cpp' -o -name '*.h' | \
+            xargs clang-tidy --checks='-*,modernize-*,performance-*,readability-*' || true
+          else
+            echo "No src directory found, skipping clang-tidy"
+          fi
+        continue-on-error: true
+
+      - name: Run cppcheck
+        run: |
+          if [ -d "src" ]; then
+            echo "Running cppcheck..."
+            cppcheck --enable=all \
+                     --suppress=missingIncludeSystem \
+                     --suppress=unmatchedSuppression \
+                     --error-exitcode=0 \
+                     --xml \
+                     --xml-version=2 \
+                     src/ 2> cppcheck.xml || true
+            
+            # Convert to human readable if needed
+            if [ -f "cppcheck.xml" ]; then
+              echo "Cppcheck analysis completed"
+              cat cppcheck.xml
+            fi
+          else
+            echo "No src directory found, skipping cppcheck"
+          fi
+        continue-on-error: true
