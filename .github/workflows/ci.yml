@@ -89,10 +89,10 @@ jobs:
       # 8. Install dependencies from vcpkg.json
       - name: Install vcpkg dependencies
         if: steps.check_vcpkg.outputs.vcpkg_exists == 'true'
-        run: |
-          ./vcpkg/vcpkg x-format-manifest
-          ./vcpkg/vcpkg install --x-install-root="${{ github.workspace }}/vcpkg_installed"
         shell: bash
+        run: |
+          ./vcpkg/vcpkg install --x-manifest-root="${{ github.workspace }}" \
+                                --x-install-root="${{ github.workspace }}/vcpkg_installed"
 
       # 9. Configure CMake
       - name: Configure CMake
