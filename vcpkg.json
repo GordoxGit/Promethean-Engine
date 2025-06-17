@@ -5,14 +5,27 @@
   "dependencies": [
     {
       "name": "sdl2",
-      "default-features": false
+      "default-features": false,
+      "features": []
     },
-    "sdl2-image",
-    "sdl2-mixer",
-    "sdl2-ttf",
+    {
+      "name": "sdl2-image",
+      "platform": "!android"
+    },
+    {
+      "name": "sdl2-mixer", 
+      "platform": "!android"
+    },
+    {
+      "name": "sdl2-ttf",
+      "platform": "!android"
+    },
     "spdlog",
     "nlohmann-json",
-    "gtest"
+    {
+      "name": "gtest",
+      "platform": "!android"
+    }
   ],
   "builtin-baseline": "16c71a39e5a0fc0bdb3fad03beef8f38ee00ee3b"
 }
