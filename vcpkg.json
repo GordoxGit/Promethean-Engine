@@ -2,20 +2,20 @@
   "name": "promethean-engine",
   "version-string": "0.1.0",
   "description": "Minimal 2D engine using SDL2",
+  "builtin-baseline": "16c71a39e5a0fc0bdb3fad03beef8f38ee00ee3b",
   "dependencies": [
+    "gtest",
+    "nlohmann-json",
     {
       "name": "sdl2",
+      "default-features": false,
       "features": [
-        "core",
         "gles"
       ]
     },
     "sdl2-image",
     "sdl2-mixer",
     "sdl2-ttf",
-    "spdlog",
-    "nlohmann-json",
-    "gtest"
-  ],
-  "builtin-baseline": "ef7dbf94b9198bc58f45951adcf1f041fcbc5ea0"
+    "spdlog"
+  ]
 }
