@@ -5,10 +5,7 @@
   "dependencies": [
     {
       "name": "sdl2",
-      "default-features": false,
-      "features": [
-        "gles"
-      ]
+      "default-features": false
     },
     "sdl2-image",
     "sdl2-mixer",
@@ -17,5 +14,5 @@
     "nlohmann-json",
     "gtest"
   ],
-  "builtin-baseline": "16c71a39e5a0fc0bdb3fad03beef8f38ee00ee3b"
+  "builtin-baseline": "2025.04.09"
 }
