@@ -242,7 +242,7 @@ jobs:
           retention-days: 7
           if-no-files-found: warn
 
-  # Build Android entièrement revu
+  # Build Android CORRIGÉ
   build-android:
     name: Build Android (${{ matrix.abi }}, ${{ matrix.build_type }})
     runs-on: ubuntu-latest
@@ -337,7 +337,7 @@ jobs:
           # Verify vcpkg is working
           ./vcpkg version
 
-      # Installation vcpkg pour Android avec triplet correct
+      # CORRECTION: Installation vcpkg en mode manifest pour Android
       - name: Install vcpkg dependencies for Android
         run: |
           # Determine correct triplet
@@ -351,19 +351,22 @@ jobs:
           
           cd vcpkg
           
-          # Install core dependencies compatible with Android
-          echo "Installing core dependencies only for Android..."
+          # CORRECTION: Utiliser le mode manifest sans packages individuels
+          echo "Installing dependencies from manifest for Android..."
           ./vcpkg install \
-            sdl2:${TRIPLET} \
-            spdlog:${TRIPLET} \
-            nlohmann-json:${TRIPLET} \
-            --debug || {
-            echo "Core dependencies failed, trying with manifest..."
+            --x-manifest-root="${{ github.workspace }}" \
+            --x-install-root="${{ github.workspace }}/vcpkg_installed" \
+            --triplet=$TRIPLET \
+            --debug \
+            --feature-flags=-compilertracking || {
+            echo "Manifest install failed, disabling compiler tracking..."
             ./vcpkg install \
               --x-manifest-root="${{ github.workspace }}" \
               --x-install-root="${{ github.workspace }}/vcpkg_installed" \
               --triplet=$TRIPLET \
-              --debug
+              --debug \
+              --feature-flags=-compilertracking \
+              --verbose
           }
 
       # Configuration CMake pour Android
