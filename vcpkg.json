@@ -5,8 +5,7 @@
   "dependencies": [
     {
       "name": "sdl2",
-      "default-features": false,
-      "features": []
+      "default-features": false
     },
     {
       "name": "sdl2-image",
@@ -26,6 +25,5 @@
       "name": "gtest",
       "platform": "!android"
     }
-  ],
-  "builtin-baseline": "16c71a39e5a0fc0bdb3fad03beef8f38ee00ee3b"
+  ]
 }
