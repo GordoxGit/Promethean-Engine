@@ -1,9 +1,118 @@
-# Build
+# Build directories
 build/
+build-*/
+out/
+cmake-build-*/
 
-# IDE
+# vcpkg
+vcpkg/
+vcpkg_installed/
+.vcpkg-root
+
+# IDEs
 .vscode/
 .idea/
+*.swp
+*.swo
+*~
 
-# Misc
+# Visual Studio
+.vs/
+*.vcxproj.user
+*.vcxproj.filters
+*.sln.docstates
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Xcode
+*.xcodeproj/
+*.xcworkspace/
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Fortran module files
+*.mod
+*.smod
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+
+# Logs
 *.log
+*.tlog
+
+# Package files
+*.dmg
+*.iso
+*.jar
+*.rar
+*.tar
+*.tar.gz
+*.zip
+
+# Android
+*.apk
+*.aab
+local.properties
+.gradle/
+
+# Temporary files
+.tmp/
+temp/
+tmp/
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Testing
+Testing/
+CTestTestfile.cmake
+DartConfiguration.tcl
+
+# Coverage
+*.gcno
+*.gcda
+*.info
+coverage/
+
+# Documentation
+docs/html/
+docs/latex/
+
+# Cache
+.cache/
+*.cache
+
+# Backup files
+*.backup
+*.bak
+*~
