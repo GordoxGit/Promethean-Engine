@@ -1,7 +1,7 @@
 # Promethean Engine 🚀
 
-Un **moteur de jeu 2D natif, modulaire et multiplateforme**, écrit en **C++17/C++20** avec **SDL2 + OpenGL 3.3+**, conçu pour être utilisé dans des projets de jeux de stratégie, simulation ou systèmes orientés UI.  
-Fonctionne sur **Windows** (.exe) et **Android** (.apk), avec une structure modulaire, testable, évolutive, et intégrée à un pipeline CI/CD complet.
+Un **moteur de jeu 2D natif, modulaire et multiplateforme**, écrit en **C++17/C++20** avec **SDL2 + OpenGL 3.3+**, conçu pour être utilisé dans des projets de jeux de stratégie, simulation ou systèmes orientés UI.
+Fonctionne sur **Windows**, **macOS**, **Linux** et **Android** (.apk), avec une structure modulaire, testable, évolutive, et intégrée à un pipeline CI/CD complet.
 
 ---
 
@@ -164,12 +164,28 @@ int main() {
 
 ## 🗺 Feuille de route
 
-| Phase | Objectif |
-|-------|----------|
-| ✅ Phase 1 | Modules essentiels : Renderer, UI, Input, State |
-| ⏳ Phase 2 | SaveSystem, EventBus, AudioManager |
-| 🔜 Phase 3 | Debug overlay, plugin system |
-| 🔜 Phase 4 | CI Android, packaging stable |
+| Phase | Objectif | Statut |
+|-------|----------|:------:|
+| **Phase 1** | **Fondations & Core** | |
+| | Initialisation du projet (CMake, vcpkg) | ✅ |
+| | Système de Log (`LogSystem` avec spdlog) | ✅ |
+| | Bus d'événements (`EventBus` thread-safe) | ✅ |
+| | CI/CD Multi-plateforme (Windows, macOS, Linux) | ✅ |
+| | CI Android (Build NDK) | ✅ |
+| | Moteur de rendu de base (Renderer OpenGL) | ⏳ |
+| | Gestionnaire d'entrées (InputHandler) | 🔜 |
+| **Phase 2** | **Fonctionnalités Moteur** | |
+| | Gestionnaire de scènes/états (StateManager) | 🔜 |
+| | Système d'UI (UIManager) | 🔜 |
+| | Gestionnaire d'assets (AssetLoader) | 🔜 |
+| | Gestionnaire Audio (AudioManager) | 🔜 |
+| **Phase 3** | **Logique de Jeu & Déploiement** | |
+| | Système de sauvegarde (SaveSystem JSON) | 🔜 |
+| | Overlay de débogage et profiling | 🔜 |
+| | Packaging stable (CPack) | ⏳ |
+| **Phase 4** | **Premier Jeu & Optimisation** | |
+| | Développement d'un jeu de test simple | 🔜 |
+| | Optimisations de performance (batching, etc.) | 🔜 |
 
 ---
 
@@ -184,7 +200,7 @@ int main() {
 
 ## 📄 Licence
 
-Ce projet est sous licence **MIT**.  
+Ce projet est sous licence **MIT**.
 Voir le fichier `LICENSE`.
 
 ---
