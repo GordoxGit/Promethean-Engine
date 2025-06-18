@@ -1,13 +1,7 @@
-#include "Engine.h"
-
-#ifdef PROMETHEAN_ANDROID_CI
-    // Use minimal stubs for Android CI
-    #include "../android/stubs.h"
-#else
-    // Use real libraries
-    #include <SDL.h>
-    #include <spdlog/spdlog.h>
-#endif
+// === CORRECTION ===
+// La logique de sélection des en-têtes est maintenant dans Engine.h
+#include "core/Engine.h"
+// === FIN CORRECTION ===
 
 #include <cstdlib>
 
