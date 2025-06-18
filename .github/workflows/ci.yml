@@ -127,6 +127,7 @@ jobs:
         run: |
           cd build
           export SDL_VIDEODRIVER=dummy
+          export SDL_AUDIODRIVER=dummy
           export DISPLAY=
           ctest -C ${{ matrix.build_type }} --output-on-failure --verbose
         shell: bash
