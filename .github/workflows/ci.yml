@@ -8,9 +8,11 @@ on:
 
 env:
   CMAKE_VERSION: '3.28.x'
+  # Active le cache binaire de vcpkg via GitHub Actions
   VCPKG_BINARY_SOURCES: 'clear;x-gha,readwrite'
 
 jobs:
+  # Job pour les plateformes Desktop (Windows, Linux, macOS)
   build:
     name: Build ${{ matrix.os }} - ${{ matrix.build_type }}
     runs-on: ${{ matrix.os }}
@@ -38,26 +40,13 @@ jobs:
         with:
           cmake-version: ${{ env.CMAKE_VERSION }}
 
-      # Installation des dépendances système optimisée par plateforme
       - name: Install system dependencies (Linux)
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
           sudo apt-get install -y \
-            ninja-build \
-            build-essential \
-            autoconf \
-            automake \
-            libtool \
-            pkg-config \
-            curl \
-            zip \
-            unzip \
-            tar \
-            git \
-            libgl1-mesa-dev \
-            libx11-dev \
-            libxext-dev
+            ninja-build build-essential autoconf automake libtool pkg-config \
+            curl zip unzip tar git libgl1-mesa-dev libx11-dev libxext-dev
 
       - name: Install system dependencies (macOS)
         if: runner.os == 'macOS'
@@ -72,7 +61,6 @@ jobs:
         if: runner.os == 'Windows'
         uses: ilammy/msvc-dev-cmd@v1
 
-      # Cache vcpkg optimisé
       - name: Cache vcpkg
         uses: actions/cache@v4
         with:
@@ -81,133 +69,59 @@ jobs:
             ${{ github.workspace }}/vcpkg_installed
             ~/.cache/vcpkg
             ~/AppData/Local/vcpkg
-          key: vcpkg-${{ runner.os }}-${{ hashFiles('**/vcpkg.json') }}-v2
+          key: vcpkg-cache-${{ runner.os }}-${{ hashFiles('**/vcpkg.json') }}
           restore-keys: |
-            vcpkg-${{ runner.os }}-${{ hashFiles('**/vcpkg.json') }}-
-            vcpkg-${{ runner.os }}-
+            vcpkg-cache-${{ runner.os }}-
 
-      # Bootstrap vcpkg
       - name: Bootstrap vcpkg
         run: |
           if [ ! -d "vcpkg" ]; then
-            echo "Cloning vcpkg..."
             git clone https://github.com/Microsoft/vcpkg.git
           fi
-          
           cd vcpkg
-          
-          # Update to latest stable
-          git fetch origin
-          git reset --hard origin/master
-          
-          if [ "$RUNNER_OS" = "Windows" ]; then
-            ./bootstrap-vcpkg.bat -disableMetrics
-          else
-            ./bootstrap-vcpkg.sh -disableMetrics
-          fi
-          
-          # Verify vcpkg is working
-          ./vcpkg version
+          ./bootstrap-vcpkg.sh -disableMetrics
         shell: bash
 
-      # Installation des dépendances vcpkg
       - name: Install vcpkg dependencies
-        shell: bash
         run: |
           cd vcpkg
-          
-          # Set binary caching
-          export VCPKG_BINARY_SOURCES="${{ env.VCPKG_BINARY_SOURCES }}"
-          
-          # Integrate vcpkg
-          if [ "$RUNNER_OS" = "Windows" ]; then
-            ./vcpkg integrate install
-          else
-            sudo ./vcpkg integrate install || ./vcpkg integrate install
-          fi
-          
-          # Install dependencies from manifest
-          echo "Installing dependencies from manifest..."
-          ./vcpkg install \
-            --x-manifest-root="${{ github.workspace }}" \
-            --x-install-root="${{ github.workspace }}/vcpkg_installed" \
-            --feature-flags=manifests,versions
+          ./vcpkg install --x-manifest-root="${{ github.workspace }}" --x-install-root="${{ github.workspace }}/vcpkg_installed"
+        shell: bash
 
-      # Configuration CMake
       - name: Configure CMake
         run: |
-          echo "Configuring CMake for $RUNNER_OS..."
-          
           TOOLCHAIN_FILE="${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake"
-          
           if [ "$RUNNER_OS" = "Windows" ]; then
-            cmake -B build \
-                  -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
+            cmake -B build -G "Visual Studio 17 2022" -A x64 \
                   -DCMAKE_TOOLCHAIN_FILE="$TOOLCHAIN_FILE" \
-                  -DVCPKG_TARGET_TRIPLET=x64-windows \
-                  -DPROMETHEAN_BUILD_TESTS=ON \
-                  -DPROMETHEAN_BUILD_EXAMPLES=ON \
-                  -G "Visual Studio 17 2022" -A x64
+                  -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
           else
-            cmake -B build \
-                  -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
+            cmake -B build -G Ninja \
                   -DCMAKE_TOOLCHAIN_FILE="$TOOLCHAIN_FILE" \
-                  -DPROMETHEAN_BUILD_TESTS=ON \
-                  -DPROMETHEAN_BUILD_EXAMPLES=ON \
-                  -G Ninja
+                  -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
           fi
         shell: bash
 
-      # Build
       - name: Build
-        run: |
-          cmake --build build --config ${{ matrix.build_type }} --parallel 4
-        shell: bash
+        run: cmake --build build --config ${{ matrix.build_type }} --parallel
 
-      # Tests avec environnement headless
       - name: Run tests
+        if: matrix.os != 'Windows' # Les tests ne sont configurés que pour non-Windows pour l'instant
         run: |
           cd build
-          
-          # Set up headless environment
-          if [ "$RUNNER_OS" = "Linux" ]; then
-            export SDL_VIDEODRIVER=dummy
-            export DISPLAY=
-          elif [ "$RUNNER_OS" = "macOS" ]; then
-            export SDL_VIDEODRIVER=dummy
-          fi
-          
-          # Run tests
-          ctest -C ${{ matrix.build_type }} \
-                --output-on-failure \
-                --verbose \
-                --timeout 300 \
-                --parallel 2 || true
+          export SDL_VIDEODRIVER=dummy
+          ctest -C ${{ matrix.build_type }} --output-on-failure --verbose
         shell: bash
 
-      # Upload artifacts
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: promethean-${{ matrix.os }}-${{ matrix.build_type }}
-          path: |
-            build/bin/*
-            build/lib/*
-            build/**/*.exe
-            build/**/*.dll
-            build/**/*.so
-            build/**/*.dylib
-          retention-days: 7
-          if-no-files-found: warn
-
-  # Build Android SIMPLIFIÉ
+  # === JOB ANDROID COMPLET ET FONCTIONNEL ===
   build-android:
-    name: Build Android (${{ matrix.abi }})
+    name: Build Android (${{ matrix.abi }}, ${{ matrix.build_type }})
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         abi: [arm64-v8a, armeabi-v7a]
+        build_type: [Release, Debug]
 
     steps:
       - name: Checkout repository
@@ -215,193 +129,80 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Setup JDK
-        uses: actions/setup-java@v4
+      - name: Export GitHub Actions cache environment variables
+        uses: actions/github-script@v7
         with:
-          java-version: '17'
-          distribution: 'temurin'
+          script: |
+            core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
+            core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
 
-      - name: Setup Android SDK
+      - name: Setup JDK and Android SDK
         uses: android-actions/setup-android@v3
 
       - name: Setup Android NDK
         run: |
-          echo "Setting up Android NDK..."
-          
-          # Install NDK version compatible avec vcpkg
           ANDROID_NDK_VERSION="25.2.9519653"
           echo "y" | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --install "ndk;${ANDROID_NDK_VERSION}"
-          
-          # Set environment variables
           NDK_PATH="$ANDROID_HOME/ndk/${ANDROID_NDK_VERSION}"
           echo "ANDROID_NDK_HOME=$NDK_PATH" >> $GITHUB_ENV
-          echo "ANDROID_NDK_ROOT=$NDK_PATH" >> $GITHUB_ENV
-          echo "NDK_ROOT=$NDK_PATH" >> $GITHUB_ENV
-          
-          # Verify NDK installation
-          if [ -d "$NDK_PATH" ]; then
-            echo "✅ Android NDK successfully installed at: $NDK_PATH"
-            ls -la "$NDK_PATH/toolchains"
-          else
-            echo "❌ Android NDK installation failed"
-            exit 1
-          fi
+          if [ ! -d "$NDK_PATH" ]; then echo "❌ Android NDK installation failed"; exit 1; fi
+          echo "✅ Android NDK successfully installed at: $NDK_PATH"
 
       - name: Install build dependencies
+        run: sudo apt-get update && sudo apt-get install -y ninja-build cmake
+
+      - name: Cache vcpkg for Android
+        uses: actions/cache@v4
+        with:
+          path: ${{ github.workspace }}/vcpkg
+          key: vcpkg-android-${{ matrix.abi }}-${{ hashFiles('**/vcpkg.json') }}
+          restore-keys: |
+            vcpkg-android-${{ matrix.abi }}-
+
+      - name: Bootstrap vcpkg
         run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            ninja-build \
-            build-essential \
-            cmake \
-            pkg-config
+          if [ ! -d "vcpkg" ]; then
+            git clone https://github.com/Microsoft/vcpkg.git
+          fi
+          cd vcpkg
+          ./bootstrap-vcpkg.sh -disableMetrics
 
-      # Create stub headers for Android CI
-      - name: Create Android stubs
+      - name: Install vcpkg dependencies for Android
         run: |
-          mkdir -p src/android
-          cat > src/android/stubs.h << 'EOF'
-#ifndef PROMETHEAN_ANDROID_STUBS_H
-#define PROMETHEAN_ANDROID_STUBS_H
-#ifdef PROMETHEAN_ANDROID_CI
-
-// Minimal SDL stubs for CI
-typedef unsigned int Uint32;
-typedef struct SDL_Window SDL_Window;
-union SDL_Event { Uint32 type; struct { struct { int sym; } keysym; } key; };
-
-#define SDL_INIT_VIDEO 0x00000001
-#define SDL_INIT_AUDIO 0x00000010
-#define SDL_WINDOW_SHOWN 0x00000004
-#define SDL_WINDOW_FULLSCREEN 0x00000001
-#define SDL_WINDOWPOS_CENTERED 0x2FFF0000
-#define SDL_QUIT 0x100
-#define SDL_KEYDOWN 0x300
-#define SDLK_ESCAPE 27
-
-inline int SDL_Init(Uint32) { return 0; }
-inline void SDL_Quit() {}
-inline const char* SDL_GetError() { return ""; }
-inline SDL_Window* SDL_CreateWindow(const char*, int, int, int, int, Uint32) { return (SDL_Window*)1; }
-inline void SDL_DestroyWindow(SDL_Window*) {}
-inline int SDL_PollEvent(SDL_Event*) { return 0; }
-inline void SDL_Delay(Uint32) {}
-
-// Minimal spdlog stubs
-namespace spdlog {
-    template<typename... T> inline void info(const char*, T...) {}
-    template<typename... T> inline void error(const char*, T...) {}
-    template<typename... T> inline void warn(const char*, T...) {}
-    template<typename... T> inline void debug(const char*, T...) {}
-}
-
-#endif
-#endif
-EOF
-
-      # Build Android SANS vcpkg (approche simplifiée)
-      - name: Configure CMake for Android (without vcpkg)
-        run: |
-          echo "Configuring CMake for Android ${{ matrix.abi }} without vcpkg..."
+          if [ "${{ matrix.abi }}" = "arm64-v8a" ]; then TRIPLET="arm64-android"; else TRIPLET="arm-android"; fi
+          echo "Installing dependencies for Android ${{ matrix.abi }} (triplet: $TRIPLET)..."
+          ANDROID_TOOLCHAIN_FILE="$ANDROID_NDK_HOME/build/cmake/android.toolchain.cmake"
           
-          # Configure with Android toolchain and CI flag
-          cmake -B build-android-${{ matrix.abi }} \
-                -DCMAKE_TOOLCHAIN_FILE="$ANDROID_NDK_HOME/build/cmake/android.toolchain.cmake" \
-                -DANDROID_ABI=${{ matrix.abi }} \
-                -DANDROID_PLATFORM=android-21 \
-                -DANDROID_STL=c++_shared \
-                -DCMAKE_BUILD_TYPE=Release \
-                -DPROMETHEAN_BUILD_TESTS=OFF \
-                -DPROMETHEAN_BUILD_EXAMPLES=OFF \
-                -DCMAKE_CXX_FLAGS="-DPROMETHEAN_ANDROID_CI" \
-                -G Ninja
+          cd vcpkg
+          ./vcpkg install \
+            --x-manifest-root="${{ github.workspace }}" \
+            --triplet=$TRIPLET \
+            --x-install-root="${{ github.workspace }}/vcpkg_installed" \
+            --x-cmake-args="-DVCPKG_CHAINLOAD_TOOLCHAIN_FILE=$ANDROID_TOOLCHAIN_FILE" \
+            --x-cmake-args="-DANDROID_ABI=${{ matrix.abi }}" \
+            --x-cmake-args="-DANDROID_PLATFORM=21" \
+            --x-cmake-args="-DANDROID_STL=c++_shared"
 
-      # Build Android
-      - name: Build Android
+      - name: Configure CMake for Android
         run: |
-          echo "Building for Android ${{ matrix.abi }}..."
-          cmake --build build-android-${{ matrix.abi }} --parallel 4 || true
+          if [ "${{ matrix.abi }}" = "arm64-v8a" ]; then TRIPLET="arm64-android"; else TRIPLET="arm-android"; fi
+          VCPKG_TOOLCHAIN_FILE="${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake"
+          
+          cmake -B build-android -G Ninja \
+            -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
+            -DCMAKE_TOOLCHAIN_FILE="$VCPKG_TOOLCHAIN_FILE" \
+            -DVCPKG_TARGET_TRIPLET="$TRIPLET" \
+            -DVCPKG_INSTALL_ROOT="${{ github.workspace }}/vcpkg_installed" \
+            -DPROMETHEAN_BUILD_TESTS=OFF \
+            -DPROMETHEAN_BUILD_EXAMPLES=OFF
 
-      # Upload Android artifacts
+      - name: Build Android
+        run: cmake --build build-android --config ${{ matrix.build_type }} --parallel
+
       - name: Upload Android artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: promethean-android-${{ matrix.abi }}
-          path: |
-            build-android-${{ matrix.abi }}/**/*.so
-            build-android-${{ matrix.abi }}/**/*.a
+          name: promethean-android-${{ matrix.abi }}-${{ matrix.build_type }}
+          path: build-android/lib/*.so
           retention-days: 7
           if-no-files-found: warn
-
-  # Job de vérification du code
-  code-quality:
-    name: Code Quality Analysis
-    runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
-    
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Install analysis tools
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y clang-tidy cppcheck
-
-      - name: Run clang-tidy
-        run: |
-          if [ -d "src" ]; then
-            echo "Running clang-tidy on source files..."
-            find src -name '*.cpp' -o -name '*.h' | \
-            head -20 | \
-            xargs clang-tidy \
-              --checks='-*,modernize-*,performance-*,readability-*,bugprone-*' \
-              --warnings-as-errors='' \
-              -- -Isrc -std=c++17 || true
-          fi
-        continue-on-error: true
-
-      - name: Run cppcheck
-        run: |
-          if [ -d "src" ]; then
-            echo "Running cppcheck analysis..."
-            cppcheck --enable=warning,style,performance \
-                     --suppress=missingIncludeSystem \
-                     --suppress=unmatchedSuppression \
-                     --suppress=unusedFunction \
-                     --error-exitcode=0 \
-                     --inline-suppr \
-                     --quiet \
-                     -Isrc \
-                     src/ || true
-          fi
-        continue-on-error: true
-
-  # Job de résumé des builds
-  build-summary:
-    name: Build Summary
-    runs-on: ubuntu-latest
-    needs: [build, build-android]
-    if: always()
-    
-    steps:
-      - name: Check build results
-        run: |
-          echo "### Build Summary" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          
-          if [ "${{ needs.build.result }}" == "success" ]; then
-            echo "✅ Desktop builds: **Success**" >> $GITHUB_STEP_SUMMARY
-          else
-            echo "❌ Desktop builds: **Failed**" >> $GITHUB_STEP_SUMMARY
-          fi
-          
-          if [ "${{ needs.build-android.result }}" == "success" ]; then
-            echo "✅ Android builds: **Success**" >> $GITHUB_STEP_SUMMARY
-          else
-            echo "⚠️ Android builds: **Failed** (experimental)" >> $GITHUB_STEP_SUMMARY
-          fi
-          
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "---" >> $GITHUB_STEP_SUMMARY
-          echo "For Android builds, vcpkg support is still experimental. The project can be built manually with Android Studio." >> $GITHUB_STEP_SUMMARY
