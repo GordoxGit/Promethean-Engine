@@ -19,6 +19,12 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 option(PROMETHEAN_BUILD_TESTS "Build unit tests" ON)
 option(PROMETHEAN_BUILD_EXAMPLES "Build examples" ON)
 
+# === CORRECTION ===
+# La variable PROMETHEAN_ANDROID_CI sera définie par le workflow GitHub Actions
+# pour le build Android simplifié.
+option(PROMETHEAN_ANDROID_CI "Simplified Android build for CI" OFF)
+# === FIN CORRECTION ===
+
 # Désactiver les tests sur Android par défaut
 if(ANDROID)
     set(PROMETHEAN_BUILD_TESTS OFF CACHE BOOL "Tests disabled on Android" FORCE)
@@ -34,25 +40,31 @@ if(WIN32)
     set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 endif()
 
-# Configuration vcpkg et dépendances
-find_package(SDL2 CONFIG REQUIRED)
-find_package(spdlog CONFIG REQUIRED)
+# === CORRECTION ===
+# Rend la recherche de dépendances conditionnelle.
+# Ne pas chercher les paquets si on est dans le mode CI Android simplifié.
+if(NOT PROMETHEAN_ANDROID_CI)
+    # Configuration vcpkg et dépendances
+    find_package(SDL2 CONFIG REQUIRED)
+    find_package(spdlog CONFIG REQUIRED)
 
-# SDL2 extensions (optionnelles pour Android)
-if(NOT ANDROID)
-    find_package(SDL2_image CONFIG REQUIRED)
-    find_package(SDL2_mixer CONFIG REQUIRED)  
-    find_package(SDL2_ttf CONFIG REQUIRED)
+    # SDL2 extensions (optionnelles pour Android)
+    if(NOT ANDROID)
+        find_package(SDL2_image CONFIG REQUIRED)
+        find_package(SDL2_mixer CONFIG REQUIRED)
+        find_package(SDL2_ttf CONFIG REQUIRED)
+    endif()
+
+    # Autres dépendances
+    find_package(nlohmann_json CONFIG REQUIRED)
+
+    # Tests seulement si demandés et supportés
+    if(PROMETHEAN_BUILD_TESTS AND NOT ANDROID)
+        find_package(GTest CONFIG REQUIRED)
+        enable_testing()
+    endif()
 endif()
-
-# Autres dépendances
-find_package(nlohmann_json CONFIG REQUIRED)
-
-# Tests seulement si demandés et supportés
-if(PROMETHEAN_BUILD_TESTS AND NOT ANDROID)
-    find_package(GTest CONFIG REQUIRED)
-    enable_testing()
-endif()
+# === FIN CORRECTION ===
 
 # === BIBLIOTHÈQUE MOTEUR ===
 add_library(engine
@@ -71,13 +83,18 @@ target_include_directories(engine
         $<INSTALL_INTERFACE:include>
 )
 
-# Liens des dépendances de base
-target_link_libraries(engine 
-    PUBLIC 
-        $<TARGET_NAME_IF_EXISTS:SDL2::SDL2main>
-        $<IF:$<TARGET_EXISTS:SDL2::SDL2>,SDL2::SDL2,SDL2::SDL2-static>
-        spdlog::spdlog
-)
+# === CORRECTION ===
+# Rend le linkage des dépendances conditionnel.
+if(NOT PROMETHEAN_ANDROID_CI)
+    # Liens des dépendances de base
+    target_link_libraries(engine 
+        PUBLIC 
+            $<TARGET_NAME_IF_EXISTS:SDL2::SDL2main>
+            $<IF:$<TARGET_EXISTS:SDL2::SDL2>,SDL2::SDL2,SDL2::SDL2-static>
+            spdlog::spdlog
+    )
+endif()
+# === FIN CORRECTION ===
 
 # Configuration du compilateur
 target_compile_features(engine PUBLIC cxx_std_17)
@@ -101,6 +118,11 @@ target_compile_definitions(engine
 if(ANDROID)
     # Définitions spécifiques Android
     target_compile_definitions(engine PRIVATE PROMETHEAN_ANDROID)
+
+    # Ajoute le flag pour la CI si défini
+    if(PROMETHEAN_ANDROID_CI)
+         target_compile_definitions(engine PRIVATE PROMETHEAN_ANDROID_CI)
+    endif()
     
     # Liens Android essentiels
     target_link_libraries(engine PUBLIC 
