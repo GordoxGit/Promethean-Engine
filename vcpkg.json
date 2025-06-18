@@ -3,37 +3,15 @@
   "version-string": "0.1.0",
   "description": "Minimal 2D engine using SDL2",
   "dependencies": [
-    {
-      "name": "sdl2",
-      "platform": "linux"
-    },
-    {
-      "name": "sdl2",
-      "platform": "windows | osx"
-    },
-    {
-      "name": "sdl2-image",
-      "platform": "!android"
-    },
-    {
-      "name": "sdl2-mixer",
-      "platform": "!android"
-    },
-    {
-      "name": "sdl2-ttf",
-      "platform": "!android"
-    },
-    {
-      "name": "spdlog",
-      "version>=": "1.12.0"
-    },
-    {
-      "name": "nlohmann-json",
-      "version>=": "3.11.3"
-    },
-    {
-      "name": "gtest",
-      "platform": "!android"
-    }
+    { "name": "sdl2", "platform": "linux"            },
+    { "name": "sdl2", "platform": "windows | osx"    },
+
+    { "name": "sdl2-image",  "platform": "!android"  },
+    { "name": "sdl2-mixer",  "platform": "!android"  },
+    { "name": "sdl2-ttf",    "platform": "!android"  },
+
+    "spdlog",
+    "nlohmann-json",
+    { "name": "gtest", "platform": "!android" }
   ]
 }
