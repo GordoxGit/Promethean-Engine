@@ -38,7 +38,7 @@ jobs:
         with:
           cmake-version: ${{ env.CMAKE_VERSION }}
 
-      # ---------- Linux build prerequisites ----------
+      # ---------- Linux prerequisites ----------
       - name: Install system dependencies (Linux)
         if: runner.os == 'Linux'
         run: |
@@ -48,15 +48,15 @@ jobs:
             curl zip unzip tar git m4 gettext gawk bison flex \
             libgl1-mesa-dev libx11-dev libxext-dev libxrandr-dev \
             libxi-dev libxcursor-dev libxinerama-dev \
-            gperf                               # <-- requis pour le port libxcrypt
+            gperf
 
-      # ---------- macOS build prerequisites ----------
+      # ---------- macOS prerequisites ----------
       - name: Install system dependencies (macOS)
         if: runner.os == 'macOS'
         run: |
           brew install ninja autoconf automake libtool pkg-config
 
-      # ---------- Windows build prerequisites ----------
+      # ---------- Windows prerequisites ----------
       - name: Setup Ninja (Windows)
         if: runner.os == 'Windows'
         uses: seanmiddleditch/gha-setup-ninja@v5
@@ -96,7 +96,9 @@ jobs:
       - name: Install vcpkg dependencies
         run: |
           cd vcpkg
-          ./vcpkg install --x-manifest-root="${{ github.workspace }}" --x-install-root="${{ github.workspace }}/vcpkg_installed"
+          ./vcpkg install \
+            --x-manifest-root="${{ github.workspace }}" \
+            --x-install-root="${{ github.workspace }}/vcpkg_installed"
         shell: bash
 
       # ---------- CMake configure ----------
@@ -166,7 +168,7 @@ jobs:
 
       - name: Install build dependencies
         run: |
-          sudo apt-get update 
+          sudo apt-get update
           sudo apt-get install -y ninja-build cmake build-essential
 
       - name: Cache vcpkg for Android
@@ -196,7 +198,6 @@ jobs:
       - name: Install vcpkg dependencies for Android
         run: |
           TRIPLET="arm64-android"
-          echo "Installing dependencies for Android ${{ matrix.abi }} (triplet: $TRIPLET)..."
           cd vcpkg
           ./vcpkg install \
             --x-manifest-root="${{ github.workspace }}" \
