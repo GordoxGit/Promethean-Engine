@@ -3,15 +3,19 @@
   "version-string": "0.1.0",
   "description": "Minimal 2D engine using SDL2",
   "dependencies": [
-    { "name": "sdl2", "platform": "linux"            },
-    { "name": "sdl2", "platform": "windows | osx"    },
+    // SDL2 pour toutes les plateformes (fournit OpenGL automatiquement)
+    "sdl2",
 
-    { "name": "sdl2-image",  "platform": "!android"  },
-    { "name": "sdl2-mixer",  "platform": "!android"  },
-    { "name": "sdl2-ttf",    "platform": "!android"  },
+    // Add-ons SDL2 hors Android
+    { "name": "sdl2-image", "platform": "!android" },
+    { "name": "sdl2-mixer", "platform": "!android" },
+    { "name": "sdl2-ttf",   "platform": "!android" },
 
+    // Bibliothèques utilitaires
     "spdlog",
     "nlohmann-json",
+
+    // Tests (non inclus dans la build Android)
     { "name": "gtest", "platform": "!android" }
   ]
 }
