@@ -8,8 +8,7 @@ on:
 
 env:
   CMAKE_VERSION: '3.28.x'
-  # Active le cache binaire de vcpkg via GitHub Actions
-  VCPKG_BINARY_SOURCES: 'clear;x-gha,readwrite'
+  # La variable VCPKG_BINARY_SOURCES est supprimée car obsolète
 
 jobs:
   # Job pour les plateformes Desktop (Windows, Linux, macOS)
@@ -71,7 +70,7 @@ jobs:
             ${{ github.workspace }}/vcpkg_installed
             ~/.cache/vcpkg
             ~/AppData/Local/vcpkg
-          key: vcpkg-cache-${{ runner.os }}-${{ hashFiles('**/vcpkg.json') }}-v3 # Changed cache key version
+          key: vcpkg-cache-${{ runner.os }}-${{ hashFiles('**/vcpkg.json') }}-v4
           restore-keys: |
             vcpkg-cache-${{ runner.os }}-
 
@@ -82,6 +81,8 @@ jobs:
             cd vcpkg
           else
             cd vcpkg
+            git fetch
+            git checkout master
             git pull
           fi
           ./bootstrap-vcpkg.sh -disableMetrics
@@ -168,7 +169,7 @@ jobs:
           path: |
             ${{ github.workspace }}/vcpkg
             ${{ github.workspace }}/vcpkg_installed
-          key: vcpkg-android-${{ matrix.abi }}-${{ hashFiles('**/vcpkg.json') }}-v3 # Changed cache key version
+          key: vcpkg-android-${{ matrix.abi }}-${{ hashFiles('**/vcpkg.json') }}-v4
           restore-keys: |
             vcpkg-android-${{ matrix.abi }}-
 
@@ -179,9 +180,12 @@ jobs:
             cd vcpkg
           else
             cd vcpkg
+            git fetch
+            git checkout master
             git pull
           fi
           ./bootstrap-vcpkg.sh -disableMetrics
+        shell: bash
 
       - name: Install vcpkg dependencies for Android
         run: |
@@ -195,7 +199,6 @@ jobs:
           
           cd vcpkg
           
-          # Installer les dépendances avec les arguments corrects pour Android
           ./vcpkg install \
             --x-manifest-root="${{ github.workspace }}" \
             --triplet=$TRIPLET \
