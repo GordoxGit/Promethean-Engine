@@ -2,8 +2,18 @@
 #define PROMETHEAN_ENGINE_H
 
 #include <memory>
-#include <SDL.h>
-#include <spdlog/spdlog.h>
+
+// === CORRECTION ===
+// Sélectionne les en-têtes en fonction de l'environnement de build.
+// Pour la CI Android, on utilise des définitions "stubs" pour permettre la compilation
+// sans installer les bibliothèques complètes.
+#ifdef PROMETHEAN_ANDROID_CI
+    #include "android/stubs.h"
+#else
+    #include <SDL.h>
+    #include <spdlog/spdlog.h>
+#endif
+// === FIN CORRECTION ===
 
 namespace Promethean {
 
