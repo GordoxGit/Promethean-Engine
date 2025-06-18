@@ -61,6 +61,8 @@ add_library(engine
     src/core/Engine.h
     src/core/LogSystem.cpp
     src/core/LogSystem.h
+    src/core/EventBus.cpp
+    src/core/EventBus.h
 )
 
 # Alias pour usage externe
@@ -165,6 +167,7 @@ if(PROMETHEAN_BUILD_TESTS AND NOT ANDROID)
     add_executable(engine_tests
         tests/EngineTests.cpp
         tests/core/TestLogSystem.cpp
+        tests/core/TestEventBus.cpp
     )
     
     target_link_libraries(engine_tests
