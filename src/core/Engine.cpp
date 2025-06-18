@@ -1,7 +1,14 @@
 #include "Engine.h"
 
-#include <SDL.h>
-#include <spdlog/spdlog.h>
+#ifdef PROMETHEAN_ANDROID_CI
+    // Use minimal stubs for Android CI
+    #include "../android/stubs.h"
+#else
+    // Use real libraries
+    #include <SDL.h>
+    #include <spdlog/spdlog.h>
+#endif
+
 #include <cstdlib>
 
 // Cross-platform compatibility
