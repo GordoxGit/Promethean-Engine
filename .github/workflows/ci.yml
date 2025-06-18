@@ -46,7 +46,8 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y \
             ninja-build build-essential autoconf automake libtool pkg-config \
-            curl zip unzip tar git libgl1-mesa-dev libx11-dev libxext-dev
+            curl zip unzip tar git libgl1-mesa-dev libx11-dev libxext-dev \
+            libxrandr-dev libxi-dev libxcursor-dev libxinerama-dev
 
       - name: Install system dependencies (macOS)
         if: runner.os == 'macOS'
@@ -69,7 +70,7 @@ jobs:
             ${{ github.workspace }}/vcpkg_installed
             ~/.cache/vcpkg
             ~/AppData/Local/vcpkg
-          key: vcpkg-cache-${{ runner.os }}-${{ hashFiles('**/vcpkg.json') }}
+          key: vcpkg-cache-${{ runner.os }}-${{ hashFiles('**/vcpkg.json') }}-v2
           restore-keys: |
             vcpkg-cache-${{ runner.os }}-
 
@@ -77,8 +78,12 @@ jobs:
         run: |
           if [ ! -d "vcpkg" ]; then
             git clone https://github.com/Microsoft/vcpkg.git
+            cd vcpkg
+            git checkout 2024.01.12
+          else
+            cd vcpkg
+            git pull
           fi
-          cd vcpkg
           ./bootstrap-vcpkg.sh -disableMetrics
         shell: bash
 
@@ -94,11 +99,13 @@ jobs:
           if [ "$RUNNER_OS" = "Windows" ]; then
             cmake -B build -G "Visual Studio 17 2022" -A x64 \
                   -DCMAKE_TOOLCHAIN_FILE="$TOOLCHAIN_FILE" \
-                  -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+                  -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
+                  -DVCPKG_INSTALLED_DIR="${{ github.workspace }}/vcpkg_installed"
           else
             cmake -B build -G Ninja \
                   -DCMAKE_TOOLCHAIN_FILE="$TOOLCHAIN_FILE" \
-                  -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+                  -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
+                  -DVCPKG_INSTALLED_DIR="${{ github.workspace }}/vcpkg_installed"
           fi
         shell: bash
 
@@ -110,6 +117,7 @@ jobs:
         run: |
           cd build
           export SDL_VIDEODRIVER=dummy
+          export DISPLAY=
           ctest -C ${{ matrix.build_type }} --output-on-failure --verbose
         shell: bash
 
@@ -145,17 +153,22 @@ jobs:
           echo "y" | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --install "ndk;${ANDROID_NDK_VERSION}"
           NDK_PATH="$ANDROID_HOME/ndk/${ANDROID_NDK_VERSION}"
           echo "ANDROID_NDK_HOME=$NDK_PATH" >> $GITHUB_ENV
+          echo "ANDROID_NDK_ROOT=$NDK_PATH" >> $GITHUB_ENV
           if [ ! -d "$NDK_PATH" ]; then echo "❌ Android NDK installation failed"; exit 1; fi
           echo "✅ Android NDK successfully installed at: $NDK_PATH"
 
       - name: Install build dependencies
-        run: sudo apt-get update && sudo apt-get install -y ninja-build cmake
+        run: |
+          sudo apt-get update 
+          sudo apt-get install -y ninja-build cmake build-essential
 
       - name: Cache vcpkg for Android
         uses: actions/cache@v4
         with:
-          path: ${{ github.workspace }}/vcpkg
-          key: vcpkg-android-${{ matrix.abi }}-${{ hashFiles('**/vcpkg.json') }}
+          path: |
+            ${{ github.workspace }}/vcpkg
+            ${{ github.workspace }}/vcpkg_installed
+          key: vcpkg-android-${{ matrix.abi }}-${{ hashFiles('**/vcpkg.json') }}-v2
           restore-keys: |
             vcpkg-android-${{ matrix.abi }}-
 
@@ -163,36 +176,55 @@ jobs:
         run: |
           if [ ! -d "vcpkg" ]; then
             git clone https://github.com/Microsoft/vcpkg.git
+            cd vcpkg
+            git checkout 2024.01.12
+          else
+            cd vcpkg
+            git pull
           fi
-          cd vcpkg
           ./bootstrap-vcpkg.sh -disableMetrics
 
       - name: Install vcpkg dependencies for Android
         run: |
-          if [ "${{ matrix.abi }}" = "arm64-v8a" ]; then TRIPLET="arm64-android"; else TRIPLET="arm-android"; fi
+          if [ "${{ matrix.abi }}" = "arm64-v8a" ]; then 
+            TRIPLET="arm64-android"
+          else 
+            TRIPLET="arm-android"
+          fi
+          
           echo "Installing dependencies for Android ${{ matrix.abi }} (triplet: $TRIPLET)..."
-          ANDROID_TOOLCHAIN_FILE="$ANDROID_NDK_HOME/build/cmake/android.toolchain.cmake"
           
           cd vcpkg
+          
+          # Installer les dépendances avec les arguments corrects pour Android
           ./vcpkg install \
             --x-manifest-root="${{ github.workspace }}" \
             --triplet=$TRIPLET \
-            --x-install-root="${{ github.workspace }}/vcpkg_installed" \
-            --x-cmake-args="-DVCPKG_CHAINLOAD_TOOLCHAIN_FILE=$ANDROID_TOOLCHAIN_FILE" \
-            --x-cmake-args="-DANDROID_ABI=${{ matrix.abi }}" \
-            --x-cmake-args="-DANDROID_PLATFORM=21" \
-            --x-cmake-args="-DANDROID_STL=c++_shared"
+            --x-install-root="${{ github.workspace }}/vcpkg_installed"
+        env:
+          ANDROID_NDK_HOME: ${{ env.ANDROID_NDK_HOME }}
+          VCPKG_CMAKE_SYSTEM_NAME: Android
 
       - name: Configure CMake for Android
         run: |
-          if [ "${{ matrix.abi }}" = "arm64-v8a" ]; then TRIPLET="arm64-android"; else TRIPLET="arm-android"; fi
+          if [ "${{ matrix.abi }}" = "arm64-v8a" ]; then 
+            TRIPLET="arm64-android"
+          else 
+            TRIPLET="arm-android"
+          fi
+          
           VCPKG_TOOLCHAIN_FILE="${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake"
+          ANDROID_TOOLCHAIN_FILE="${ANDROID_NDK_HOME}/build/cmake/android.toolchain.cmake"
           
           cmake -B build-android -G Ninja \
             -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
             -DCMAKE_TOOLCHAIN_FILE="$VCPKG_TOOLCHAIN_FILE" \
+            -DVCPKG_CHAINLOAD_TOOLCHAIN_FILE="$ANDROID_TOOLCHAIN_FILE" \
             -DVCPKG_TARGET_TRIPLET="$TRIPLET" \
-            -DVCPKG_INSTALL_ROOT="${{ github.workspace }}/vcpkg_installed" \
+            -DVCPKG_INSTALLED_DIR="${{ github.workspace }}/vcpkg_installed" \
+            -DANDROID_ABI="${{ matrix.abi }}" \
+            -DANDROID_PLATFORM=android-21 \
+            -DANDROID_STL=c++_shared \
             -DPROMETHEAN_BUILD_TESTS=OFF \
             -DPROMETHEAN_BUILD_EXAMPLES=OFF
 
@@ -203,6 +235,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: promethean-android-${{ matrix.abi }}-${{ matrix.build_type }}
-          path: build-android/lib/*.so
+          path: |
+            build-android/lib/*.so
+            build-android/lib/*.a
           retention-days: 7
           if-no-files-found: warn
