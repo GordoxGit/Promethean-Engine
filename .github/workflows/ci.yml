@@ -48,7 +48,8 @@ jobs:
             curl zip unzip tar git m4 gettext gawk bison flex \
             libgl1-mesa-dev libx11-dev libxext-dev libxrandr-dev \
             libxi-dev libxcursor-dev libxinerama-dev \
-            gperf
+            gperf \
+            libltdl-dev
 
       # ---------- macOS prerequisites ----------
       - name: Install system dependencies (macOS)
