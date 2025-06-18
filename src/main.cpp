@@ -1,8 +1,20 @@
 #include "core/Engine.h"
-#include <spdlog/spdlog.h>
-#include <SDL.h>
+
+#ifndef PROMETHEAN_ANDROID_CI
+    #include <spdlog/spdlog.h>
+    #include <SDL.h>
+#endif
 
 int main(int argc, char* argv[]) {
+#ifdef PROMETHEAN_ANDROID_CI
+    // Mode CI Android simplifié
+    Promethean::Engine engine;
+    if (!engine.Initialize()) {
+        return 1;
+    }
+    engine.Shutdown();
+    return 0;
+#else
     Promethean::Engine engine;
     if (!engine.Initialize()) {
         spdlog::error("Failed to initialize engine");
@@ -24,4 +36,5 @@ int main(int argc, char* argv[]) {
 
     engine.Shutdown();
     return 0;
+#endif
 }
