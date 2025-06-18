@@ -7,7 +7,7 @@
     {
       "name": "sdl2",
       "default-features": false,
-      "features": []
+      "features": ["x11", "opengl", "pulseaudio"]
     },
     {
       "name": "sdl2-image",
