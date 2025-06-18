@@ -1,8 +1,7 @@
-// === CORRECTION ===
-// La logique de sélection des en-têtes est maintenant dans Engine.h
 #include "core/Engine.h"
-// === FIN CORRECTION ===
 
+#include <SDL.h>
+#include <spdlog/spdlog.h>
 #include <cstdlib>
 
 // Cross-platform compatibility
