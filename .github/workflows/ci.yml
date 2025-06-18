@@ -8,10 +8,9 @@ on:
 
 env:
   CMAKE_VERSION: '3.28.x'
-  # La variable VCPKG_BINARY_SOURCES est supprimée car obsolète
 
 jobs:
-  # Job pour les plateformes Desktop (Windows, Linux, macOS)
+  # ---------- DESKTOP (Windows / Linux / macOS) ----------
   build:
     name: Build ${{ matrix.os }} - ${{ matrix.build_type }}
     runs-on: ${{ matrix.os }}
@@ -39,6 +38,7 @@ jobs:
         with:
           cmake-version: ${{ env.CMAKE_VERSION }}
 
+      # ---------- Linux build prerequisites ----------
       - name: Install system dependencies (Linux)
         if: runner.os == 'Linux'
         run: |
@@ -47,13 +47,16 @@ jobs:
             ninja-build build-essential autoconf automake libtool pkg-config \
             curl zip unzip tar git m4 gettext gawk bison flex \
             libgl1-mesa-dev libx11-dev libxext-dev libxrandr-dev \
-            libxi-dev libxcursor-dev libxinerama-dev
+            libxi-dev libxcursor-dev libxinerama-dev \
+            gperf                               # <-- requis pour le port libxcrypt
 
+      # ---------- macOS build prerequisites ----------
       - name: Install system dependencies (macOS)
         if: runner.os == 'macOS'
         run: |
           brew install ninja autoconf automake libtool pkg-config
 
+      # ---------- Windows build prerequisites ----------
       - name: Setup Ninja (Windows)
         if: runner.os == 'Windows'
         uses: seanmiddleditch/gha-setup-ninja@v5
@@ -62,6 +65,7 @@ jobs:
         if: runner.os == 'Windows'
         uses: ilammy/msvc-dev-cmd@v1
 
+      # ---------- vcpkg cache ----------
       - name: Cache vcpkg
         uses: actions/cache@v4
         with:
@@ -74,6 +78,7 @@ jobs:
           restore-keys: |
             vcpkg-cache-${{ runner.os }}-
 
+      # ---------- bootstrap vcpkg ----------
       - name: Bootstrap vcpkg
         run: |
           if [ ! -d "vcpkg" ]; then
@@ -94,6 +99,7 @@ jobs:
           ./vcpkg install --x-manifest-root="${{ github.workspace }}" --x-install-root="${{ github.workspace }}/vcpkg_installed"
         shell: bash
 
+      # ---------- CMake configure ----------
       - name: Configure CMake
         run: |
           TOOLCHAIN_FILE="${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake"
@@ -122,7 +128,7 @@ jobs:
           ctest -C ${{ matrix.build_type }} --output-on-failure --verbose
         shell: bash
 
-  # === JOB ANDROID COMPLET ET FONCTIONNEL ===
+  # ---------- ANDROID ----------
   build-android:
     name: Build Android (${{ matrix.abi }}, ${{ matrix.build_type }})
     runs-on: ubuntu-latest
@@ -189,16 +195,9 @@ jobs:
 
       - name: Install vcpkg dependencies for Android
         run: |
-          if [ "${{ matrix.abi }}" = "arm64-v8a" ]; then 
-            TRIPLET="arm64-android"
-          else 
-            TRIPLET="arm-android"
-          fi
-          
+          TRIPLET="arm64-android"
           echo "Installing dependencies for Android ${{ matrix.abi }} (triplet: $TRIPLET)..."
-          
           cd vcpkg
-          
           ./vcpkg install \
             --x-manifest-root="${{ github.workspace }}" \
             --triplet=$TRIPLET \
@@ -209,15 +208,9 @@ jobs:
 
       - name: Configure CMake for Android
         run: |
-          if [ "${{ matrix.abi }}" = "arm64-v8a" ]; then 
-            TRIPLET="arm64-android"
-          else 
-            TRIPLET="arm-android"
-          fi
-          
+          TRIPLET="arm64-android"
           VCPKG_TOOLCHAIN_FILE="${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake"
           ANDROID_TOOLCHAIN_FILE="${ANDROID_NDK_HOME}/build/cmake/android.toolchain.cmake"
-          
           cmake -B build-android -G Ninja \
             -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
             -DCMAKE_TOOLCHAIN_FILE="$VCPKG_TOOLCHAIN_FILE" \
