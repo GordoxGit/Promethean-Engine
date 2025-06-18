@@ -6,11 +6,20 @@
   "dependencies": [
     {
       "name": "sdl2",
+      "platform": "linux",
       "default-features": false,
       "features": [
         "opengl",
         "x11",
         "pulseaudio"
+      ]
+    },
+    {
+      "name": "sdl2",
+      "platform": "windows | osx",
+      "default-features": false,
+      "features": [
+        "opengl"
       ]
     },
     {
