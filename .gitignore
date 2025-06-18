@@ -8,6 +8,7 @@ cmake-build-*/
 vcpkg/
 vcpkg_installed/
 .vcpkg-root
+vcpkg-manifest-install.log
 
 # IDEs
 .vscode/
@@ -15,6 +16,7 @@ vcpkg_installed/
 *.swp
 *.swo
 *~
+.cache/
 
 # Visual Studio
 .vs/
@@ -25,6 +27,7 @@ vcpkg_installed/
 *.user
 *.userosscache
 *.sln.docstates
+CMakeSettings.json
 
 # Xcode
 *.xcodeproj/
@@ -78,6 +81,7 @@ vcpkg_installed/
 *.aab
 local.properties
 .gradle/
+.cxx/
 
 # Temporary files
 .tmp/
@@ -116,3 +120,12 @@ docs/latex/
 *.backup
 *.bak
 *~
+
+# CMake
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+install_manifest.txt
+compile_commands.json
+CTestTestfile.cmake
+_deps/
