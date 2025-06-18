@@ -3,17 +3,8 @@
 
 #include <memory>
 
-// === CORRECTION ===
-// Sélectionne les en-têtes en fonction de l'environnement de build.
-// Pour la CI Android, on utilise des définitions "stubs" pour permettre la compilation
-// sans installer les bibliothèques complètes.
-#ifdef PROMETHEAN_ANDROID_CI
-    #include "android/stubs.h"
-#else
-    #include <SDL.h>
-    #include <spdlog/spdlog.h>
-#endif
-// === FIN CORRECTION ===
+// Forward declarations pour éviter les dépendances cycliques
+struct SDL_Window;
 
 namespace Promethean {
 
@@ -43,7 +34,7 @@ public:
 
 private:
     struct SDLWindowDeleter {
-        void operator()(SDL_Window* w) const { if (w) SDL_DestroyWindow(w); }
+        void operator()(SDL_Window* w) const;
     };
 
     bool m_initialized{false};
