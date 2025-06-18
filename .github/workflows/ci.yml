@@ -71,7 +71,7 @@ jobs:
             ${{ github.workspace }}/vcpkg_installed
             ~/.cache/vcpkg
             ~/AppData/Local/vcpkg
-          key: vcpkg-cache-${{ runner.os }}-${{ hashFiles('**/vcpkg.json') }}-v2
+          key: vcpkg-cache-${{ runner.os }}-${{ hashFiles('**/vcpkg.json') }}-v3 # Changed cache key version
           restore-keys: |
             vcpkg-cache-${{ runner.os }}-
 
@@ -80,7 +80,6 @@ jobs:
           if [ ! -d "vcpkg" ]; then
             git clone https://github.com/Microsoft/vcpkg.git
             cd vcpkg
-            git checkout 2024.01.12
           else
             cd vcpkg
             git pull
@@ -114,7 +113,7 @@ jobs:
         run: cmake --build build --config ${{ matrix.build_type }} --parallel
 
       - name: Run tests
-        if: matrix.os != 'Windows' # Les tests ne sont configurés que pour non-Windows pour l'instant
+        if: matrix.os != 'Windows'
         run: |
           cd build
           export SDL_VIDEODRIVER=dummy
@@ -169,7 +168,7 @@ jobs:
           path: |
             ${{ github.workspace }}/vcpkg
             ${{ github.workspace }}/vcpkg_installed
-          key: vcpkg-android-${{ matrix.abi }}-${{ hashFiles('**/vcpkg.json') }}-v2
+          key: vcpkg-android-${{ matrix.abi }}-${{ hashFiles('**/vcpkg.json') }}-v3 # Changed cache key version
           restore-keys: |
             vcpkg-android-${{ matrix.abi }}-
 
@@ -178,7 +177,6 @@ jobs:
           if [ ! -d "vcpkg" ]; then
             git clone https://github.com/Microsoft/vcpkg.git
             cd vcpkg
-            git checkout 2024.01.12
           else
             cd vcpkg
             git pull
