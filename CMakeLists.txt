@@ -59,6 +59,8 @@ add_library(engine
     # Core
     src/core/Engine.cpp
     src/core/Engine.h
+    src/core/LogSystem.cpp
+    src/core/LogSystem.h
 )
 
 # Alias pour usage externe
@@ -91,11 +93,15 @@ else()
 endif()
 
 # Configuration Debug/Release
-target_compile_definitions(engine 
+target_compile_definitions(engine
     PRIVATE
         $<$<CONFIG:Debug>:PROMETHEAN_DEBUG>
         $<$<CONFIG:Release>:PROMETHEAN_RELEASE>
 )
+
+if(PROMETHEAN_BUILD_TESTS AND NOT ANDROID)
+    target_compile_definitions(engine PUBLIC TESTING)
+endif()
 
 # === CONFIGURATION ANDROID SPÉCIFIQUE ===
 if(ANDROID)
@@ -156,15 +162,17 @@ endif()
 
 # === TESTS UNITAIRES ===
 if(PROMETHEAN_BUILD_TESTS AND NOT ANDROID)
-    add_executable(engine_tests 
+    add_executable(engine_tests
         tests/EngineTests.cpp
+        tests/core/TestLogSystem.cpp
     )
     
-    target_link_libraries(engine_tests 
-        PRIVATE 
+    target_link_libraries(engine_tests
+        PRIVATE
             Promethean::Engine
             GTest::gtest_main
     )
+    target_compile_definitions(engine_tests PRIVATE TESTING)
     
     # Configuration des tests
     set_target_properties(engine_tests PROPERTIES
