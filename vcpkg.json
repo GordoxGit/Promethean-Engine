@@ -1,43 +1,30 @@
 {
   "name": "promethean-engine",
-  "version-string": "0.1.0",
-  "description": "Minimal 2D engine using SDL2",
-  "builtin-baseline": "c8696863d371ab7f46e213d8f5ca923c4aef2a00",
+  "version": "0.1.0",
+  "description": "A modular 2D game engine with SDL2 and OpenGL backend.",
   "dependencies": [
     {
       "name": "sdl2",
-      "default-features": false,
-      "features": []
+      "default-features": true
     },
     {
-      "name": "sdl2-image",
-      "platform": "!android"
-    },
-    {
-      "name": "sdl2-mixer", 
-      "platform": "!android"
-    },
-    {
-      "name": "sdl2-ttf",
-      "platform": "!android"
+      "name": "openal-soft",
+      "default-features": true
     },
     {
       "name": "spdlog",
-      "version>=": "1.12.0"
+      "default-features": true
     },
     {
       "name": "nlohmann-json",
-      "version>=": "3.11.0"
-    },
-    {
-      "name": "gtest",
-      "platform": "!android"
+      "version>=": "3.11.3"
     }
   ],
   "overrides": [
     {
-      "name": "sdl2",
-      "version": "2.28.5"
+      "name": "nlohmann-json",
+      "version": "3.11.3"
     }
-  ]
+  ],
+  "builtin-baseline": "6dbdfb2d2d47ba6d8084cf022e86bc5d6520eb80"
 }
