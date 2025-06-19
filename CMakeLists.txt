@@ -123,7 +123,7 @@ endif()
 
 # === CONFIGURATION ANDROID SPÉCIFIQUE ===
 if(ANDROID)
-    target_compile_definitions(engine PRIVATE PROMETHEAN_ANDROID)
+    target_compile_definitions(engine PRIVATE PROMETHEAN_ANDROID GRAPHICS_API_GLES)
 
     target_link_libraries(engine PUBLIC
         android
