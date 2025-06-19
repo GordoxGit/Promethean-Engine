@@ -4,21 +4,17 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 /* -------------------------------------------------------------------------
-   Sélection de l’en-tête OpenGL en fonction de la plate-forme / du mode
-   - GRAPHICS_API_GLES : build Android → <GLES3/*>
-   - HEADLESS_GL       : build “stub” (tests unitaires) → aucun header GL réel
-   - sinon             : build desktop normal        → <GL/glew.h>
+   Sélection de l’en‑tête OpenGL en fonction de la plate‑forme / du mode
    ------------------------------------------------------------------------- */
 #if defined(GRAPHICS_API_GLES)
     #include <GLES3/gl3.h>
     #include <GLES3/gl3ext.h>
 #elif defined(HEADLESS_GL)
-    /* Pas d’include : on va fournir nos propres stubs plus bas */
+    /* Pas d'en‑tête GL réel en mode headless : des stubs sont définis plus bas. */
 #else
     #include <GL/glew.h>
 #endif
 
-/* ------------------------------------------------------------------------- */
 #ifndef GLSL_VERSION
 #   ifdef GRAPHICS_API_GLES
 #       define GLSL_VERSION "#version 300 es\n"
@@ -28,19 +24,18 @@
 #endif
 
 #ifdef PROMETHEAN_DEBUG
-#   define GL_CHECK(x)                                                        \
-        do {                                                                  \
-            x;                                                                \
-            GLenum e = glGetError();                                          \
-            if (e != GL_NO_ERROR)                                             \
-                LogSystem::Instance().Warn("GL error {} at " #x, (int)e);     \
+#   define GL_CHECK(x)                                                         \
+        do { x; GLenum e = glGetError();                                       \
+        if (e != GL_NO_ERROR)                                                  \
+            LogSystem::Instance().Warn("GL error {} at " #x, (int)e);        \
         } while (0)
 #else
 #   define GL_CHECK(x) x
 #endif
 
-/* ------------------------------------------------------------------------- */
-/* ---- Implémentations GL factices utilisées en mode HEADLESS_GL ------------*/
+/* -------------------------------------------------------------------------
+   Implémentations GL factices utilisées en mode HEADLESS_GL / TESTING
+   ------------------------------------------------------------------------- */
 #if defined(HEADLESS_GL) || defined(TESTING)
 
 using GLenum      = unsigned int;
@@ -65,45 +60,49 @@ using GLboolean   = unsigned char;
 #define GL_LINK_STATUS     0
 #define GL_TRIANGLES       0
 
-/* Petit helper pour générer les stubs en une ligne. Les fonctions réelles
-   ne sont jamais appelées dans les tests, donc on retourne des valeurs neutres. */
-#define GL_STUB(ret, name, ...)                               \
-    extern "C" ret name(__VA_ARGS__) { return {}; }
+// ----------------------------------------------------------------------
+// Helpers pour déclarer rapidement des stubs C extern "C"
+//  - GL_STUB_VOID : pour les fonctions retournant void
+//  - GL_STUB_VAL  : pour les fonctions retournant une valeur
+// ----------------------------------------------------------------------
+#define GL_STUB_VOID(name, ...)   extern "C" void   name(__VA_ARGS__) { /* no‑op */ }
+#define GL_STUB_VAL(ret, name, ...) extern "C" ret  name(__VA_ARGS__) { return (ret)0; }
 
-/* Génération des stubs minimalistes */
-GL_STUB(void,   glGenVertexArrays, GLsizei, GLuint*)
-GL_STUB(void,   glGenBuffers,      GLsizei, GLuint*)
-GL_STUB(GLuint, glCreateShader,    GLenum)
-GL_STUB(void,   glShaderSource,    GLuint, GLsizei, const char* const*, const GLint*)
-GL_STUB(void,   glCompileShader,   GLuint)
-GL_STUB(void,   glGetShaderiv,     GLuint, GLenum, GLint*)
-GL_STUB(GLuint, glCreateProgram,   void)
-GL_STUB(void,   glAttachShader,    GLuint, GLuint)
-GL_STUB(void,   glLinkProgram,     GLuint)
-GL_STUB(void,   glGetProgramiv,    GLuint, GLenum, GLint*)
-GL_STUB(void,   glDeleteShader,    GLuint)
-GL_STUB(void,   glDeleteProgram,   GLuint)
-GL_STUB(void,   glBindVertexArray, GLuint)
-GL_STUB(void,   glBindBuffer,      GLenum, GLuint)
-GL_STUB(void,   glBufferData,      GLenum, GLsizeiptr, const void*, GLenum)
-GL_STUB(void,   glBufferSubData,   GLenum, GLintptr, GLsizeiptr, const void*)
-GL_STUB(void,   glEnableVertexAttribArray, GLuint)
-GL_STUB(void,   glVertexAttribPointer, GLuint, GLint, GLenum, GLboolean, GLsizei, const void*)
-GL_STUB(void,   glUseProgram, GLuint)
-GL_STUB(GLint,  glGetUniformLocation, GLuint, const char*)
-GL_STUB(void,   glUniformMatrix4fv, GLint, GLsizei, GLboolean, const GLfloat*)
-GL_STUB(void,   glUniform4fv, GLint, GLsizei, const GLfloat*)
-GL_STUB(void,   glViewport, GLint, GLint, GLsizei, GLsizei)
-GL_STUB(void,   glDrawArrays, GLenum, GLint, GLsizei)
-GL_STUB(void,   glDeleteVertexArrays, GLsizei, const GLuint*)
-GL_STUB(void,   glDeleteBuffers,     GLsizei, const GLuint*)
-GL_STUB(GLenum, glGetError,          void)
+// ➜ Stubs "void"
+GL_STUB_VOID(glGenVertexArrays,        GLsizei, GLuint*)
+GL_STUB_VOID(glGenBuffers,             GLsizei, GLuint*)
+GL_STUB_VOID(glShaderSource,           GLuint, GLsizei, const char* const*, const GLint*)
+GL_STUB_VOID(glCompileShader,          GLuint)
+GL_STUB_VOID(glGetShaderiv,            GLuint, GLenum, GLint*)
+GL_STUB_VOID(glAttachShader,           GLuint, GLuint)
+GL_STUB_VOID(glLinkProgram,            GLuint)
+GL_STUB_VOID(glGetProgramiv,           GLuint, GLenum, GLint*)
+GL_STUB_VOID(glDeleteShader,           GLuint)
+GL_STUB_VOID(glDeleteProgram,          GLuint)
+GL_STUB_VOID(glBindVertexArray,        GLuint)
+GL_STUB_VOID(glBindBuffer,             GLenum, GLuint)
+GL_STUB_VOID(glBufferData,             GLenum, GLsizeiptr, const void*, GLenum)
+GL_STUB_VOID(glBufferSubData,          GLenum, GLintptr, GLsizeiptr, const void*)
+GL_STUB_VOID(glEnableVertexAttribArray,GLuint)
+GL_STUB_VOID(glVertexAttribPointer,    GLuint, GLint, GLenum, GLboolean, GLsizei, const void*)
+GL_STUB_VOID(glUseProgram,             GLuint)
+GL_STUB_VOID(glUniformMatrix4fv,       GLint, GLsizei, GLboolean, const GLfloat*)
+GL_STUB_VOID(glUniform4fv,             GLint, GLsizei, const GLfloat*)
+GL_STUB_VOID(glViewport,               GLint, GLint, GLsizei, GLsizei)
+GL_STUB_VOID(glDrawArrays,             GLenum, GLint, GLsizei)
+GL_STUB_VOID(glDeleteVertexArrays,     GLsizei, const GLuint*)
+GL_STUB_VOID(glDeleteBuffers,          GLsizei, const GLuint*)
+
+// ➜ Stubs "valeur"
+GL_STUB_VAL(GLuint,   glCreateShader,      GLenum)
+GL_STUB_VAL(GLuint,   glCreateProgram,     void)
+GL_STUB_VAL(GLint,    glGetUniformLocation,GLuint, const char*)
+GL_STUB_VAL(GLenum,   glGetError,          void)
 
 #endif /* HEADLESS_GL || TESTING */
-/* ------------------------------------------------------------------------- */
 
-namespace
-{
+/* ------------------------------------------------------------------------- */
+namespace {
     const char* vertexSrc =
         GLSL_VERSION
         "layout(location=0) in vec2 aPos;\n"
@@ -128,9 +127,7 @@ namespace
         "}\n";
 }
 
-/* ===================================================================== */
-/*                          Implémentation                               */
-/* ===================================================================== */
+/* =========================== Implémentation ============================ */
 BatchRenderer::BatchRenderer() = default;
 BatchRenderer::~BatchRenderer() { Shutdown(); }
 
@@ -143,11 +140,9 @@ bool BatchRenderer::Init()
     GL_CHECK(glGenBuffers(1, &m_vbo));
     GL_CHECK(glBindVertexArray(m_vao));
     GL_CHECK(glBindBuffer(GL_ARRAY_BUFFER, m_vbo));
-    GL_CHECK(glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 4 * 6,
-                          nullptr, GL_DYNAMIC_DRAW));
+    GL_CHECK(glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 4 * 6, nullptr, GL_DYNAMIC_DRAW));
     GL_CHECK(glEnableVertexAttribArray(0));
-    GL_CHECK(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE,
-                                   4 * sizeof(float), (void*)0));
+    GL_CHECK(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0));
 
     GLuint vert = glCreateShader(GL_VERTEX_SHADER);
     GL_CHECK(glShaderSource(vert, 1, &vertexSrc, nullptr));
@@ -195,16 +190,15 @@ void BatchRenderer::Begin(int screenWidth, int screenHeight)
     }
 
     GL_CHECK(glViewport(0, 0, screenWidth, screenHeight));
-    glm::mat4 proj = glm::ortho(0.f, (float)screenWidth,
-                                (float)screenHeight, 0.f);
+    glm::mat4 proj = glm::ortho(0.f, static_cast<float>(screenWidth),
+                                static_cast<float>(screenHeight), 0.f);
     GL_CHECK(glUseProgram(m_shader));
     GLint loc = glGetUniformLocation(m_shader, "u_proj");
     GL_CHECK(glUniformMatrix4fv(loc, 1, GL_FALSE, &proj[0][0]));
 }
 
 void BatchRenderer::DrawQuad(const glm::vec2& pos, const glm::vec2& size,
-                             uint32_t /*textureId*/,
-                             const glm::vec4& color)
+                             uint32_t /*textureId*/, const glm::vec4& color)
 {
     if (!m_initialized)
     {
@@ -212,14 +206,14 @@ void BatchRenderer::DrawQuad(const glm::vec2& pos, const glm::vec2& size,
         return;
     }
 
-    float x = pos.x; float y = pos.y; float w = size.x; float h = size.y;
+    float x = pos.x, y = pos.y, w = size.x, h = size.y;
     const float verts[24] = {
-        x,     y,     0.f, 0.f,
-        x+w,   y,     1.f, 0.f,
-        x+w,   y+h,   1.f, 1.f,
-        x,     y,     0.f, 0.f,
-        x+w,   y+h,   1.f, 1.f,
-        x,     y+h,   0.f, 1.f
+        x,   y,   0.f, 0.f,
+        x+w, y,   1.f, 0.f,
+        x+w, y+h, 1.f, 1.f,
+        x,   y,   0.f, 0.f,
+        x+w, y+h, 1.f, 1.f,
+        x,   y+h, 0.f, 1.f
     };
 
     GL_CHECK(glBindBuffer(GL_ARRAY_BUFFER, m_vbo));
