@@ -14,7 +14,7 @@ project(PrometheanEngine
 # =====================================================
 if(ANDROID)
     # → Build mobile : OpenGL ES 3.x fourni par le NDK
-    set(PROM_GFX_LIB GLESv2)                      # <- plus de find_package(OpenGLES)
+    set(PROM_GFX_LIB GLESv2)
 else()
     # → Build desktop : OpenGL + GLEW (installé via vcpkg)
     find_package(OpenGL 3.3 REQUIRED)
@@ -29,59 +29,49 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-# Configuration du build
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-# Options du projet
-option(PROMETHEAN_BUILD_TESTS "Build unit tests" ON)
-option(PROMETHEAN_BUILD_EXAMPLES "Build examples" ON)
+# Options
+option(PROMETHEAN_BUILD_TESTS    "Build unit tests" ON)
+option(PROMETHEAN_BUILD_EXAMPLES "Build examples"  ON)
 
-# Désactiver les tests sur Android par défaut
 if(ANDROID)
     set(PROMETHEAN_BUILD_TESTS OFF CACHE BOOL "Tests disabled on Android" FORCE)
 endif()
 
-# Configuration des paths de sortie
+# Sortie
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 
-# Configuration multiplateforme
 if(WIN32)
     set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 endif()
 
 # =====================================================
-# Dépendances (via vcpkg)
+# Dépendances (vcpkg)
 # =====================================================
-find_package(SDL2 CONFIG REQUIRED)
-find_package(spdlog CONFIG REQUIRED)
-find_package(glm CONFIG REQUIRED)
+find_package(SDL2          CONFIG REQUIRED)
+find_package(spdlog        CONFIG REQUIRED)
+find_package(glm           CONFIG REQUIRED)
+find_package(nlohmann_json CONFIG REQUIRED)
 
-# SDL2 extensions (optionnelles pour Android)
 if(NOT ANDROID)
     find_package(SDL2_image CONFIG REQUIRED)
     find_package(SDL2_mixer CONFIG REQUIRED)
     find_package(SDL2_ttf   CONFIG REQUIRED)
 endif()
 
-find_package(nlohmann_json CONFIG REQUIRED)
-# (find_package(OpenGL REQUIRED) supprimé – déjà géré plus haut)
-
 # =====================================================
 # Bibliothèque moteur
 # =====================================================
 add_library(engine
     # Core
-    src/core/Engine.cpp
-    src/core/Engine.h
-    src/core/LogSystem.cpp
-    src/core/LogSystem.h
-    src/core/EventBus.cpp
-    src/core/EventBus.h
+    src/core/Engine.cpp            src/core/Engine.h
+    src/core/LogSystem.cpp         src/core/LogSystem.h
+    src/core/EventBus.cpp          src/core/EventBus.h
     # Renderer
-    src/renderer/BatchRenderer.cpp
-    src/renderer/BatchRenderer.h
+    src/renderer/BatchRenderer.cpp src/renderer/BatchRenderer.h
     src/renderer/RenderEvents.h
 )
 add_library(Promethean::Engine ALIAS engine)
@@ -92,12 +82,11 @@ target_include_directories(engine
         $<INSTALL_INTERFACE:include>
 )
 
-# Liens des dépendances de base
 target_link_libraries(engine
     PUBLIC
         $<TARGET_NAME_IF_EXISTS:SDL2::SDL2main>
         $<IF:$<TARGET_EXISTS:SDL2::SDL2>,SDL2::SDL2,SDL2::SDL2-static>
-        ${PROM_GFX_LIB}                # <- remplace l’ancienne référence fixe
+        ${PROM_GFX_LIB}
         spdlog::spdlog
         glm::glm
 )
@@ -111,13 +100,12 @@ else()
     target_compile_options(engine PRIVATE -Wall -Wextra -Wpedantic)
 endif()
 
-target_compile_definitions(engine
-    PRIVATE
-        $<$<CONFIG:Debug>:PROMETHEAN_DEBUG>
-        $<$<CONFIG:Release>:PROMETHEAN_RELEASE>
+target_compile_definitions(engine PRIVATE
+    $<$<CONFIG:Debug>:PROMETHEAN_DEBUG>
+    $<$<CONFIG:Release>:PROMETHEAN_RELEASE>
 )
 
-# === CONFIGURATION ANDROID SPÉCIFIQUE ===
+# --- Android spécifique ---
 if(ANDROID)
     target_compile_definitions(engine PRIVATE PROMETHEAN_ANDROID GRAPHICS_API_GLES)
 
@@ -140,7 +128,7 @@ if(ANDROID)
 endif()
 
 # =====================================================
-# Exécutable principal (sauf si Android sans exemples)
+# Exécutable principal
 # =====================================================
 if(NOT ANDROID OR PROMETHEAN_BUILD_EXAMPLES)
     add_executable(promethean src/main.cpp)
@@ -176,7 +164,9 @@ if(PROMETHEAN_BUILD_TESTS AND NOT ANDROID)
             Promethean::Engine
             GTest::gtest_main
     )
-    target_compile_definitions(engine_tests PRIVATE TESTING)
+
+    # active les stubs OpenGL côté tests
+    target_compile_definitions(engine_tests PRIVATE TESTING HEADLESS_GL)
 
     include(GoogleTest)
     gtest_discover_tests(engine_tests
@@ -184,11 +174,8 @@ if(PROMETHEAN_BUILD_TESTS AND NOT ANDROID)
         PROPERTIES ENVIRONMENT "SDL_VIDEODRIVER=dummy"
     )
 
-    add_test(
-        NAME EngineTests
-        COMMAND engine_tests
-        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-    )
+    add_test(NAME EngineTests COMMAND engine_tests
+             WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
     set_tests_properties(EngineTests PROPERTIES
         ENVIRONMENT "SDL_VIDEODRIVER=dummy;DISPLAY="
         TIMEOUT 60
@@ -201,10 +188,10 @@ endif()
 include(GNUInstallDirs)
 
 install(TARGETS engine
-    EXPORT PrometheanEngineTargets
-    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+    EXPORT   PrometheanEngineTargets
+    LIBRARY  DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    ARCHIVE  DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    RUNTIME  DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
 
 install(DIRECTORY src/
@@ -223,7 +210,7 @@ install(EXPORT PrometheanEngineTargets
 )
 
 # =====================================================
-# Résumé de configuration
+# Résumé
 # =====================================================
 message(STATUS "=== Promethean Engine Configuration ===")
 message(STATUS "Version:        ${PROJECT_VERSION}")
@@ -243,12 +230,12 @@ endif()
 message(STATUS "=====================================")
 
 # =====================================================
-# CPack (pour desktop)
+# CPack (desktop uniquement)
 # =====================================================
 if(NOT ANDROID)
-    set(CPACK_PACKAGE_NAME "PrometheanEngine")
-    set(CPACK_PACKAGE_VERSION "${PROJECT_VERSION}")
-    set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "${PROJECT_DESCRIPTION}")
-    set(CPACK_PACKAGE_VENDOR "Promethean Engine Team")
+    set(CPACK_PACKAGE_NAME                 "PrometheanEngine")
+    set(CPACK_PACKAGE_VERSION              "${PROJECT_VERSION}")
+    set(CPACK_PACKAGE_DESCRIPTION_SUMMARY  "${PROJECT_DESCRIPTION}")
+    set(CPACK_PACKAGE_VENDOR               "Promethean Engine Team")
     include(CPack)
 endif()
