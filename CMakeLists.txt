@@ -7,6 +7,20 @@ project(PrometheanEngine
     LANGUAGES CXX
 )
 
+# =====================================================
+# Sélection de la lib OpenGL / OpenGL ES
+# =====================================================
+if(ANDROID)
+    # → Build mobile : OpenGL ES 3.x fourni par le NDK
+    find_package(OpenGLES REQUIRED)
+    set(PROM_GFX_LIB OpenGLES::OpenGLES)
+else()
+    # → Build desktop : OpenGL + GLEW (installé via vcpkg)
+    find_package(OpenGL 3.3 REQUIRED)
+    find_package(GLEW   REQUIRED)
+    set(PROM_GFX_LIB OpenGL::GL GLEW::GLEW)
+endif()
+
 # Standards C++
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
