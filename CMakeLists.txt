@@ -128,8 +128,7 @@ if(ANDROID)
     target_link_libraries(engine PUBLIC
         android
         log
-        GLESv1_CM
-        GLESv2
+        GLESv3
         OpenSLES
     )
 
