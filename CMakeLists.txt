@@ -87,6 +87,7 @@ target_link_libraries(engine
         $<IF:$<TARGET_EXISTS:SDL2::SDL2>,SDL2::SDL2,SDL2::SDL2-static>
         spdlog::spdlog
         OpenGL::GL
+        glm::glm
 )
 
 # Configuration du compilateur
