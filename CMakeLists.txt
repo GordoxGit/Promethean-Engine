@@ -117,10 +117,6 @@ target_compile_definitions(engine
         $<$<CONFIG:Release>:PROMETHEAN_RELEASE>
 )
 
-if(PROMETHEAN_BUILD_TESTS AND NOT ANDROID)
-    target_compile_definitions(engine PUBLIC TESTING)
-endif()
-
 # === CONFIGURATION ANDROID SPÉCIFIQUE ===
 if(ANDROID)
     target_compile_definitions(engine PRIVATE PROMETHEAN_ANDROID GRAPHICS_API_GLES)
