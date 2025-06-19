@@ -10,6 +10,14 @@
     #include <GL/glew.h>
 #endif
 
+#ifndef GLSL_VERSION
+#  ifdef GRAPHICS_API_GLES
+#    define GLSL_VERSION "#version 300 es\n"
+#  else
+#    define GLSL_VERSION "#version 330 core\n"
+#  endif
+#endif
+
 #ifdef PROMETHEAN_DEBUG
 #define GL_CHECK(x) do { x; GLenum e = glGetError(); \
     if(e!=GL_NO_ERROR) LogSystem::Instance().Warn("GL error {} at " #x, (int)e); } while(0)
