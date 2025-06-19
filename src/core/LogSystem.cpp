@@ -66,11 +66,15 @@ void LogSystem::Flush()
     m_impl->logger->flush();
 }
 
-#ifdef TESTING
-void LogSystem::SetCustomSinkForTesting(std::shared_ptr<spdlog::sinks::sink> sink)
+// ————————————————————————————————
+// Disponible en permanence ; utilisé seulement par les tests
+// ————————————————————————————————
+void LogSystem::SetCustomSinkForTesting(
+    std::shared_ptr<spdlog::sinks::sink> sink)
 {
-    m_impl->logger->sinks().clear();
-    m_impl->logger->sinks().push_back(std::move(sink));
+    m_logger = std::make_shared<spdlog::logger>("PrometheanTest",
+                                                std::move(sink));
+    m_logger->set_level(m_currentLevel);
 }
-#endif
+
 
