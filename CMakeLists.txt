@@ -37,6 +37,7 @@ endif()
 # Configuration vcpkg et dépendances
 find_package(SDL2 CONFIG REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
+find_package(glm CONFIG REQUIRED) 
 
 # SDL2 extensions (optionnelles pour Android)
 if(NOT ANDROID)
