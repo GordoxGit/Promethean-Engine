@@ -77,3 +77,59 @@ TEST(BatchRenderer, PublishFrameEvent)
     br.Shutdown();
 }
 
+TEST(BatchRenderer, InitTexture_BindsOnce)
+{
+    BatchRenderer br;
+    ASSERT_TRUE(br.Init());
+    br.BindTexture(5);
+    br.BindTexture(5);
+    EXPECT_EQ(TestGL::GetBindTextureCount(), 1);
+    EXPECT_EQ(TestGL::GetLastBoundTexture(), 5u);
+    br.Shutdown();
+}
+
+TEST(BatchRenderer, DrawQuad_UsesUVs)
+{
+    BatchRenderer br;
+    ASSERT_TRUE(br.Init());
+    QuadUV uv; uv.topRight = {0.5f,0.f}; uv.bottomRight = {0.5f,0.5f}; uv.bottomLeft={0.f,0.5f};
+    br.DrawQuad({1.f,2.f},{3.f,4.f}, uv);
+    const float* data = TestGL::GetLastBufferData();
+    const float expected[24] = {
+        1.f,2.f, uv.topLeft.x,uv.topLeft.y,
+        4.f,2.f, uv.topRight.x,uv.topRight.y,
+        4.f,6.f, uv.bottomRight.x,uv.bottomRight.y,
+        1.f,2.f, uv.topLeft.x,uv.topLeft.y,
+        4.f,6.f, uv.bottomRight.x,uv.bottomRight.y,
+        1.f,6.f, uv.bottomLeft.x,uv.bottomLeft.y
+    };
+    for(int i=0;i<24;i++)
+        EXPECT_FLOAT_EQ(data[i], expected[i]);
+    br.Shutdown();
+}
+
+TEST(BatchRenderer, DrawWithoutBind_UsesTex0)
+{
+    BatchRenderer br;
+    ASSERT_TRUE(br.Init());
+    br.DrawQuad({0,0},{1,1});
+    EXPECT_EQ(TestGL::GetLastUniformTexture(),0);
+    br.Shutdown();
+}
+
+TEST(BatchRenderer, ShaderUniforms_SetCorrectly)
+{
+    BatchRenderer br;
+    ASSERT_TRUE(br.Init());
+    br.BindTexture(7);
+    glm::vec4 tint(0.2f,0.3f,0.4f,1.f);
+    br.DrawQuad({0,0},{2,2}, {}, tint);
+    glm::vec4 got = TestGL::GetLastTint();
+    EXPECT_FLOAT_EQ(got.r,tint.r);
+    EXPECT_FLOAT_EQ(got.g,tint.g);
+    EXPECT_FLOAT_EQ(got.b,tint.b);
+    EXPECT_FLOAT_EQ(got.a,tint.a);
+    EXPECT_EQ(TestGL::GetLastUniformTexture(),0);
+    br.Shutdown();
+}
+
