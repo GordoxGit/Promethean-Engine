@@ -100,6 +100,7 @@ target_link_libraries(engine
     PUBLIC
         $<TARGET_NAME_IF_EXISTS:SDL2::SDL2main>
         $<IF:$<TARGET_EXISTS:SDL2::SDL2>,SDL2::SDL2,SDL2::SDL2-static>
+        ${PROM_GFX_LIB}
         spdlog::spdlog
         OpenGL::GL
         glm::glm
