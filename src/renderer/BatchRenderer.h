@@ -13,6 +13,16 @@
  * composant se contente alors de valider la logique haut-niveau
  * (initialisation, cycle Begin/End, publication d’évènements, …).
  */
+/**
+ * @brief UV coordinates for a quad.
+ */
+struct QuadUV {
+    glm::vec2 bottomLeft  {0.f, 1.f};
+    glm::vec2 topLeft     {0.f, 0.f};
+    glm::vec2 topRight    {1.f, 0.f};
+    glm::vec2 bottomRight {1.f, 1.f};
+};
+
 class BatchRenderer
 {
 public:
@@ -28,11 +38,17 @@ public:
     /** Prépare la frame (setup viewport + projection). */
     void Begin(int screenWidth, int screenHeight);
 
+    /**
+     * @brief Lie une texture 2D pour les prochains draw.
+     * @param textureId Identifiant OpenGL de la texture.
+     */
+    void BindTexture(uint32_t textureId);
+
     /** Dessine un quad immédiatement (pas encore de batching). */
     void DrawQuad(const glm::vec2& pos,
                   const glm::vec2& size,
-                  uint32_t textureId = 0,
-                  const glm::vec4& color = {1.f, 1.f, 1.f, 1.f});
+                  const QuadUV&    uv   = {},
+                  const glm::vec4& tint = {1.f,1.f,1.f,1.f});
 
     /** Flush immédiat puis publication de FrameRenderedEvent. */
     void Flush();
@@ -42,6 +58,7 @@ public:
 
 private:
     uint32_t m_vao{0}, m_vbo{0}, m_shader{0};
+    uint32_t m_boundTexture{0};
     bool     m_initialized{false};
 
 #ifdef TESTING
@@ -51,3 +68,13 @@ public:
     uint32_t GetShader() const { return m_shader; }
 #endif
 };
+
+#ifdef TESTING
+namespace TestGL {
+    int      GetBindTextureCount();
+    uint32_t GetLastBoundTexture();
+    const float* GetLastBufferData();
+    glm::vec4 GetLastTint();
+    int      GetLastUniformTexture();
+}
+#endif

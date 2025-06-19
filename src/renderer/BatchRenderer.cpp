@@ -2,6 +2,7 @@
 #include "renderer/RenderEvents.h"
 
 #include <glm/gtc/matrix_transform.hpp>
+#include <cassert>
 
 /* -------------------------------------------------------------------------
    Sélection de l’en‑tête OpenGL en fonction de la plate‑forme / du mode
@@ -59,6 +60,7 @@ using GLboolean   = unsigned char;
 #define GL_COMPILE_STATUS  0
 #define GL_LINK_STATUS     0
 #define GL_TRIANGLES       0
+#define GL_TEXTURE_2D      0
 
 // ----------------------------------------------------------------------
 // Helpers pour déclarer rapidement des stubs C extern "C"
@@ -82,14 +84,11 @@ GL_STUB_VOID(glDeleteProgram,          GLuint)
 GL_STUB_VOID(glBindVertexArray,        GLuint)
 GL_STUB_VOID(glBindBuffer,             GLenum, GLuint)
 GL_STUB_VOID(glBufferData,             GLenum, GLsizeiptr, const void*, GLenum)
-GL_STUB_VOID(glBufferSubData,          GLenum, GLintptr, GLsizeiptr, const void*)
 GL_STUB_VOID(glEnableVertexAttribArray,GLuint)
 GL_STUB_VOID(glVertexAttribPointer,    GLuint, GLint, GLenum, GLboolean, GLsizei, const void*)
 GL_STUB_VOID(glUseProgram,             GLuint)
 GL_STUB_VOID(glUniformMatrix4fv,       GLint, GLsizei, GLboolean, const GLfloat*)
-GL_STUB_VOID(glUniform4fv,             GLint, GLsizei, const GLfloat*)
 GL_STUB_VOID(glViewport,               GLint, GLint, GLsizei, GLsizei)
-GL_STUB_VOID(glDrawArrays,             GLenum, GLint, GLsizei)
 GL_STUB_VOID(glDeleteVertexArrays,     GLsizei, const GLuint*)
 GL_STUB_VOID(glDeleteBuffers,          GLsizei, const GLuint*)
 
@@ -99,6 +98,42 @@ GL_STUB_VAL(GLuint,   glCreateProgram,     void)
 GL_STUB_VAL(GLint,    glGetUniformLocation,GLuint, const char*)
 GL_STUB_VAL(GLenum,   glGetError,          void)
 
+#ifdef TESTING
+namespace TestGL {
+    int bindTextureCount = 0;
+    GLuint lastBoundTexture = 0;
+    int drawArraysCount = 0;
+    float lastBufferData[24] = {};
+    glm::vec4 lastTint{0.f,0.f,0.f,0.f};
+    GLint lastUniformTexture = 0;
+}
+
+extern "C" void glBindTexture(GLenum, GLuint texture)
+{ TestGL::bindTextureCount++; TestGL::lastBoundTexture = texture; }
+
+extern "C" void glUniform1i(GLint, GLint value)
+{ TestGL::lastUniformTexture = value; }
+
+extern "C" void glUniform4fv(GLint, GLsizei, const GLfloat* value)
+{ if(value) TestGL::lastTint = {value[0],value[1],value[2],value[3]}; }
+
+extern "C" void glBufferSubData(GLenum, GLintptr, GLsizeiptr size, const void* data)
+{
+    const float* f = static_cast<const float*>(data);
+    for(size_t i=0;i<24 && i<size/sizeof(float);++i)
+        TestGL::lastBufferData[i]=f[i];
+}
+
+extern "C" void glDrawArrays(GLenum, GLint, GLsizei)
+{ TestGL::drawArraysCount++; }
+#else
+GL_STUB_VOID(glBindTexture, GLenum, GLuint)
+GL_STUB_VOID(glUniform1i, GLint, GLint)
+GL_STUB_VOID(glUniform4fv, GLint, GLsizei, const GLfloat*)
+GL_STUB_VOID(glBufferSubData, GLenum, GLintptr, GLsizeiptr, const void*)
+GL_STUB_VOID(glDrawArrays, GLenum, GLint, GLsizei)
+#endif
+
 #endif /* HEADLESS_GL || TESTING */
 
 /* ------------------------------------------------------------------------- */
@@ -106,8 +141,11 @@ namespace {
     const char* vertexSrc =
         GLSL_VERSION
         "layout(location=0) in vec2 aPos;\n"
+        "layout(location=1) in vec2 aUV;\n"
+        "out vec2 vUV;\n"
         "uniform mat4 u_proj;\n"
         "void main(){\n"
+        "    vUV = aUV;\n"
         "    gl_Position = u_proj * vec4(aPos, 0.0, 1.0);\n"
         "}\n";
 
@@ -116,15 +154,20 @@ namespace {
     #ifdef GRAPHICS_API_GLES
         "precision mediump float;\n"
     #endif
-        "uniform vec4 u_color;\n"
-        "void main(){\n"
+        "in vec2 vUV;\n"
+        "uniform sampler2D u_tex;\n"
+        "uniform vec4 u_tint;\n"
     #ifdef GRAPHICS_API_GLES
-        "    gl_FragColor = u_color;\n"
+        "void main(){\n"
+        "    gl_FragColor = texture(u_tex, vUV) * u_tint;\n"
+        "}\n"
     #else
-        "    out vec4 FragColor;\n"
-        "    FragColor = u_color;\n"
+        "out vec4 FragColor;\n"
+        "void main(){\n"
+        "    FragColor = texture(u_tex, vUV) * u_tint;\n"
+        "}\n"
     #endif
-        "}\n";
+        ;
 }
 
 /* =========================== Implémentation ============================ */
@@ -143,6 +186,8 @@ bool BatchRenderer::Init()
     GL_CHECK(glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 4 * 6, nullptr, GL_DYNAMIC_DRAW));
     GL_CHECK(glEnableVertexAttribArray(0));
     GL_CHECK(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0));
+    GL_CHECK(glEnableVertexAttribArray(1));
+    GL_CHECK(glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float))));
 
     GLuint vert = glCreateShader(GL_VERTEX_SHADER);
     GL_CHECK(glShaderSource(vert, 1, &vertexSrc, nullptr));
@@ -197,8 +242,24 @@ void BatchRenderer::Begin(int screenWidth, int screenHeight)
     GL_CHECK(glUniformMatrix4fv(loc, 1, GL_FALSE, &proj[0][0]));
 }
 
+void BatchRenderer::BindTexture(uint32_t textureId)
+{
+    if (textureId == 0)
+    {
+        assert(false && "BindTexture called with 0");
+        return;
+    }
+
+    if (textureId == m_boundTexture)
+        return;
+
+    m_boundTexture = textureId;
+    LogSystem::Instance().Debug("BatchRenderer::BindTexture {}", textureId);
+    GL_CHECK(glBindTexture(GL_TEXTURE_2D, textureId));
+}
+
 void BatchRenderer::DrawQuad(const glm::vec2& pos, const glm::vec2& size,
-                             uint32_t /*textureId*/, const glm::vec4& color)
+                             const QuadUV& uv, const glm::vec4& tint)
 {
     if (!m_initialized)
     {
@@ -208,19 +269,21 @@ void BatchRenderer::DrawQuad(const glm::vec2& pos, const glm::vec2& size,
 
     float x = pos.x, y = pos.y, w = size.x, h = size.y;
     const float verts[24] = {
-        x,   y,   0.f, 0.f,
-        x+w, y,   1.f, 0.f,
-        x+w, y+h, 1.f, 1.f,
-        x,   y,   0.f, 0.f,
-        x+w, y+h, 1.f, 1.f,
-        x,   y+h, 0.f, 1.f
+        x,   y,   uv.topLeft.x,     uv.topLeft.y,
+        x+w, y,   uv.topRight.x,    uv.topRight.y,
+        x+w, y+h, uv.bottomRight.x, uv.bottomRight.y,
+        x,   y,   uv.topLeft.x,     uv.topLeft.y,
+        x+w, y+h, uv.bottomRight.x, uv.bottomRight.y,
+        x,   y+h, uv.bottomLeft.x,  uv.bottomLeft.y
     };
 
     GL_CHECK(glBindBuffer(GL_ARRAY_BUFFER, m_vbo));
     GL_CHECK(glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(verts), verts));
 
-    GLint loc = glGetUniformLocation(m_shader, "u_color");
-    GL_CHECK(glUniform4fv(loc, 1, &color[0]));
+    GLint locTint = glGetUniformLocation(m_shader, "u_tint");
+    GL_CHECK(glUniform4fv(locTint, 1, &tint[0]));
+    GLint locTex = glGetUniformLocation(m_shader, "u_tex");
+    GL_CHECK(glUniform1i(locTex, 0));
 
     GL_CHECK(glUseProgram(m_shader));
     GL_CHECK(glBindVertexArray(m_vao));
@@ -235,6 +298,7 @@ void BatchRenderer::Flush()
         return;
     }
 
+    LogSystem::Instance().Debug("BatchRenderer::Flush");
     EventBus::Instance().Publish(FrameRenderedEvent{});
 }
 
@@ -242,3 +306,13 @@ void BatchRenderer::End()
 {
     Flush();
 }
+
+#ifdef TESTING
+namespace TestGL {
+int      GetBindTextureCount()    { return bindTextureCount; }
+uint32_t GetLastBoundTexture()    { return lastBoundTexture; }
+const float* GetLastBufferData()  { return lastBufferData; }
+glm::vec4 GetLastTint()           { return lastTint; }
+int      GetLastUniformTexture()  { return lastUniformTexture; }
+}
+#endif
