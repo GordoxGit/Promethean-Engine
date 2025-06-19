@@ -11,6 +11,7 @@
 
     "spdlog",
     "nlohmann-json",
+    "glm",
 
     { "name": "gtest", "platform": "!android" }
   ]
