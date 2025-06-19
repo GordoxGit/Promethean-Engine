@@ -47,6 +47,7 @@ endif()
 
 # Autres dépendances
 find_package(nlohmann_json CONFIG REQUIRED)
+find_package(OpenGL REQUIRED)
 
 # Tests seulement si demandés et supportés
 if(PROMETHEAN_BUILD_TESTS AND NOT ANDROID)
@@ -63,6 +64,10 @@ add_library(engine
     src/core/LogSystem.h
     src/core/EventBus.cpp
     src/core/EventBus.h
+    # Renderer
+    src/renderer/BatchRenderer.cpp
+    src/renderer/BatchRenderer.h
+    src/renderer/RenderEvents.h
 )
 
 # Alias pour usage externe
@@ -76,11 +81,12 @@ target_include_directories(engine
 )
 
 # Liens des dépendances de base
-target_link_libraries(engine 
-    PUBLIC 
+target_link_libraries(engine
+    PUBLIC
         $<TARGET_NAME_IF_EXISTS:SDL2::SDL2main>
         $<IF:$<TARGET_EXISTS:SDL2::SDL2>,SDL2::SDL2,SDL2::SDL2-static>
         spdlog::spdlog
+        OpenGL::GL
 )
 
 # Configuration du compilateur
@@ -168,6 +174,7 @@ if(PROMETHEAN_BUILD_TESTS AND NOT ANDROID)
         tests/EngineTests.cpp
         tests/core/TestLogSystem.cpp
         tests/core/TestEventBus.cpp
+        tests/renderer/TestBatchRenderer.cpp
     )
     
     target_link_libraries(engine_tests
