@@ -3,20 +3,11 @@
 
 #include <glm/gtc/matrix_transform.hpp>
 
-#ifndef TESTING
-#  ifdef GRAPHICS_API_GLES
-#    include <GLES2/gl2.h>
-#  else
-#    include <GL/gl.h>
-#  endif
-#endif
-
-#ifndef GLSL_VERSION
-#ifdef GRAPHICS_API_GLES
-#define GLSL_VERSION "#version 100\n"
+#if defined(GRAPHICS_API_GLES)
+    #include <GLES3/gl3.h>
+    #include <GLES3/gl3ext.h>
 #else
-#define GLSL_VERSION "#version 330 core\n"
-#endif
+    #include <GL/glew.h>
 #endif
 
 #ifdef PROMETHEAN_DEBUG
