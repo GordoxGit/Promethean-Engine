@@ -1,54 +1,36 @@
 #pragma once
 
+#include <memory>
 #include <string>
-#include <unordered_map>
-#include <cstdint>
 
-using TextureHandle = uint32_t;
+namespace Promethean {
+
+class Texture;
+class Sound;
+class Font;
 
 /**
- * @brief Minimal asset manager used for loading textures.
- *
- * This is a placeholder implementation meant for unit tests.
+ * @brief Centralized asset manager with LRU caching.
  */
 class AssetManager {
 public:
-    static AssetManager& Instance();
+    /**
+     * @brief Construct the manager with a maximum cache size.
+     * @param cacheSize Number of entries (all types combined).
+     */
+    explicit AssetManager(std::size_t cacheSize);
+    ~AssetManager();
 
-    /** Load a texture and return its handle. */
-    TextureHandle LoadTexture(const std::string& path);
-
-#ifdef TESTING
-    void Reset();
-#endif
+    /** Load a texture from disk or cache. */
+    std::shared_ptr<Texture> LoadTexture(const std::string& path);
+    /** Load a sound effect. */
+    std::shared_ptr<Sound>   LoadSound  (const std::string& path);
+    /** Load a font at the given size. */
+    std::shared_ptr<Font>    LoadFont   (const std::string& path, int size);
 
 private:
-    AssetManager() = default;
-    std::unordered_map<std::string, TextureHandle> m_loaded;
-    TextureHandle m_nextHandle{1};
+    struct Impl;
+    std::unique_ptr<Impl> m_impl; ///< Pimpl hiding LRU implementation.
 };
 
-inline AssetManager& AssetManager::Instance()
-{
-    static AssetManager instance;
-    return instance;
-}
-
-inline TextureHandle AssetManager::LoadTexture(const std::string& path)
-{
-    auto it = m_loaded.find(path);
-    if(it != m_loaded.end())
-        return it->second;
-    TextureHandle handle = m_nextHandle++;
-    m_loaded[path] = handle;
-    return handle;
-}
-
-#ifdef TESTING
-inline void AssetManager::Reset()
-{
-    m_loaded.clear();
-    m_nextHandle = 1;
-}
-#endif
-
+} // namespace Promethean

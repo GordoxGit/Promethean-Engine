@@ -36,16 +36,16 @@ static SDL_Event MouseUp(int x,int y)
 
 TEST(Button, NormalToHover)
 {
-    AssetManager::Instance().Reset();
-    Button btn("b","n","h","p");
+    AssetManager mgr{4};
+    Button btn(mgr,"b","n","h","p");
     btn.HandleEvent(MouseMotion(10,10));
     EXPECT_EQ(btn.GetState(), ButtonState::HOVER);
 }
 
 TEST(Button, HoverToNormal)
 {
-    AssetManager::Instance().Reset();
-    Button btn("b","n","h","p");
+    AssetManager mgr{4};
+    Button btn(mgr,"b","n","h","p");
     btn.HandleEvent(MouseMotion(5,5));
     btn.HandleEvent(MouseMotion(150,150));
     EXPECT_EQ(btn.GetState(), ButtonState::NORMAL);
@@ -53,8 +53,8 @@ TEST(Button, HoverToNormal)
 
 TEST(Button, PressedState)
 {
-    AssetManager::Instance().Reset();
-    Button btn("b","n","h","p");
+    AssetManager mgr{4};
+    Button btn(mgr,"b","n","h","p");
     btn.HandleEvent(MouseMotion(5,5));
     btn.HandleEvent(MouseDown(5,5));
     EXPECT_EQ(btn.GetState(), ButtonState::PRESSED);
@@ -62,8 +62,8 @@ TEST(Button, PressedState)
 
 TEST(Button, ClickFiresEvent)
 {
-    AssetManager::Instance().Reset();
-    Button btn("b","n","h","p");
+    AssetManager mgr{4};
+    Button btn(mgr,"b","n","h","p");
     int count=0;
     auto id = EventBus::Instance().Subscribe<ButtonClickedEvent>([&](const std::any&){ ++count; });
     btn.HandleEvent(MouseMotion(5,5));
@@ -76,8 +76,8 @@ TEST(Button, ClickFiresEvent)
 
 TEST(Button, NoEventOnDragOut)
 {
-    AssetManager::Instance().Reset();
-    Button btn("b","n","h","p");
+    AssetManager mgr{4};
+    Button btn(mgr,"b","n","h","p");
     int count=0;
     auto id = EventBus::Instance().Subscribe<ButtonClickedEvent>([&](const std::any&){ ++count; });
     btn.HandleEvent(MouseMotion(5,5));

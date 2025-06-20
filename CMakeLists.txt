@@ -84,7 +84,7 @@ add_library(engine
     src/ui/WidgetContainer.h
     src/ui/Widget.h
     # ── Assets ---------------------------------------------------------------
-    src/assets/AssetManager.h
+    src/assets/AssetManager.cpp            src/assets/AssetManager.h
 )
 add_library(Promethean::Engine ALIAS engine)
 
@@ -101,6 +101,9 @@ target_link_libraries(engine
         ${PROM_GFX_LIB}
         spdlog::spdlog
         glm::glm
+        SDL2_image::SDL2_image
+        SDL2_mixer::SDL2_mixer
+        SDL2_ttf::SDL2_ttf
 )
 
 target_compile_features(engine PUBLIC cxx_std_17)
@@ -180,6 +183,7 @@ if(PROMETHEAN_BUILD_TESTS AND NOT ANDROID)
         tests/core/TestStateStack.cpp
         tests/renderer/TestBatchRenderer.cpp
         tests/debug/TestDebugOverlay.cpp
+        tests/assets/TestAssetManager.cpp
         tests/ui/TestButton.cpp
         tests/ui/TestLayout.cpp
     )
