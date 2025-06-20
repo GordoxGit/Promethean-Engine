@@ -35,6 +35,8 @@ public:
 
     void Draw(BatchRenderer& renderer) override;
     bool HandleEvent(const SDL_Event& event) override;
+    void SetPosition(const glm::vec2& pos) override;
+    void SetSize(const glm::vec2& size) override;
 
 #ifdef TESTING
     ButtonState GetState() const { return static_cast<ButtonState>(m_state); }
