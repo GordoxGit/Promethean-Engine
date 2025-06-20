@@ -2,6 +2,8 @@
 #define PROMETHEAN_ENGINE_H
 
 #include <memory>
+#include "core/StateStack.h"
+#include "renderer/BatchRenderer.h"
 
 // Forward declarations pour éviter les dépendances cycliques
 struct SDL_Window;
@@ -27,6 +29,12 @@ public:
      */
     void Shutdown();
 
+    /** Run the main loop until no state remains. */
+    void Run();
+
+    /** Push an initial state onto the stack. */
+    void RegisterState(std::unique_ptr<State> state);
+
     /**
      * \brief Check if the engine is initialized.
      */
@@ -39,6 +47,8 @@ private:
 
     bool m_initialized{false};
     std::unique_ptr<SDL_Window, SDLWindowDeleter> m_window;
+    BatchRenderer m_renderer;
+    StateStack    m_states;
 };
 
 } // namespace Promethean

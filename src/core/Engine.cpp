@@ -1,4 +1,6 @@
 #include "core/Engine.h"
+#include "core/StateStack.h"
+#include "renderer/BatchRenderer.h"
 
 #include <cstdlib>
 
@@ -109,6 +111,59 @@ void Engine::Shutdown() {
     SDL_Quit();
     spdlog::info("Engine shutdown complete");
     m_initialized = false;
+#endif
+}
+
+void Engine::RegisterState(std::unique_ptr<State> state)
+{
+    m_states.Request(StateAction::Push, std::move(state));
+}
+
+void Engine::Run()
+{
+#ifdef PROMETHEAN_ANDROID_CI
+    m_states.ApplyRequests();
+    return;
+#else
+    if (!m_initialized)
+        return;
+
+    if (!m_renderer.Init())
+        return;
+
+    bool running = true;
+    Uint32 last = SDL_GetTicks();
+
+    while (running)
+    {
+        SDL_Event ev;
+        while (SDL_PollEvent(&ev))
+        {
+            if (ev.type == SDL_QUIT)
+                running = false;
+            else if (ev.type == SDL_KEYDOWN && ev.key.keysym.sym == SDLK_ESCAPE)
+                running = false;
+
+            m_states.HandleEvent(ev);
+        }
+
+        Uint32 now = SDL_GetTicks();
+        float dt = static_cast<float>(now - last) / 1000.f;
+        last = now;
+
+        m_states.Update(dt);
+        m_states.ApplyRequests();
+
+        m_renderer.Begin(1280, 720);
+        m_states.Render(m_renderer);
+        m_renderer.End();
+
+        SDL_Delay(1);
+        if (m_states.Size() == 0)
+            running = false;
+    }
+
+    m_renderer.Shutdown();
 #endif
 }
 

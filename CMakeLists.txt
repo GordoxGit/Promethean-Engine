@@ -69,6 +69,8 @@ add_library(engine
     src/core/Engine.cpp                src/core/Engine.h
     src/core/LogSystem.cpp             src/core/LogSystem.h
     src/core/EventBus.cpp              src/core/EventBus.h
+    src/core/StateStack.cpp            src/core/StateStack.h
+    src/core/State.h
     # ── Renderer ────────────────────────────────────────────────────
     src/renderer/BatchRenderer.cpp     src/renderer/BatchRenderer.h
     src/renderer/RenderEvents.h
@@ -175,6 +177,7 @@ if(PROMETHEAN_BUILD_TESTS AND NOT ANDROID)
         tests/EngineTests.cpp
         tests/core/TestLogSystem.cpp
         tests/core/TestEventBus.cpp
+        tests/core/TestStateStack.cpp
         tests/renderer/TestBatchRenderer.cpp
         tests/debug/TestDebugOverlay.cpp
         tests/ui/TestButton.cpp
