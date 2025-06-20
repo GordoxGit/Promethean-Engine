@@ -85,3 +85,15 @@ bool Button::HandleEvent(const SDL_Event& event)
     return true;
 }
 
+void Button::SetPosition(const glm::vec2& pos)
+{
+    m_bounds.x = static_cast<int>(pos.x);
+    m_bounds.y = static_cast<int>(pos.y);
+}
+
+void Button::SetSize(const glm::vec2& size)
+{
+    m_bounds.w = static_cast<int>(size.x);
+    m_bounds.h = static_cast<int>(size.y);
+}
+
