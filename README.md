@@ -166,26 +166,45 @@ int main() {
 
 | Phase | Objectif | Statut |
 |-------|----------|:------:|
-| **Phase 1** | **Fondations & Core** | |
+| **Phase 1** | **Fondations & Infrastructure** | |
 | | Initialisation du projet (CMake, vcpkg) | ✅ |
-| | Système de Log (`LogSystem` avec spdlog) | ✅ |
+| | Logging (`LogSystem` via spdlog) | ✅ |
 | | Bus d'événements (`EventBus` thread-safe) | ✅ |
-| | CI/CD Multi-plateforme (Windows, macOS, Linux) | ✅ |
-| | CI Android (Build NDK) | ✅ |
-| | Moteur de rendu de base (Renderer OpenGL) | ⏳ |
-| | Gestionnaire d'entrées (InputHandler) | 🔜 |
-| **Phase 2** | **Fonctionnalités Moteur** | |
-| | Gestionnaire de scènes/états (StateManager) | 🔜 |
-| | Système d'UI (UIManager) | 🔜 |
-| | Gestionnaire d'assets (AssetLoader) | 🔜 |
-| | Gestionnaire Audio (AudioManager) | 🔜 |
-| **Phase 3** | **Logique de Jeu & Déploiement** | |
-| | Système de sauvegarde (SaveSystem JSON) | 🔜 |
-| | Overlay de débogage et profiling | 🔜 |
-| | Packaging stable (CPack) | ⏳ |
-| **Phase 4** | **Premier Jeu & Optimisation** | |
-| | Développement d'un jeu de test simple | 🔜 |
-| | Optimisations de performance (batching, etc.) | 🔜 |
+| | CI/CD Multi-plateforme (Windows, Linux, macOS, Android) | ✅ |
+| | Headless-GL (tests sans affichage OpenGL) | ✅ |
+| | Système de tickets AI-ready (template Codex Markdown + YAML) | ✅ |
+| | Refactor CMake cross-platform clean | ✅ |
+
+| **Phase 2** | **Systèmes Graphiques & UI** | |
+| | BatchRenderer (OpenGL, VAO/VBO, batching, quad, ortho) | ✅ |
+| | Implémentation UI de base (`Widget`, `Button`) | ⏳ |
+| | Gestionnaire de Layout (`Grid`, `Horizontal`, `Vertical`) | 🔜 |
+| | Overlay Debug (draw line, sphere, logs visuels) | 🔜 |
+
+| **Phase 3** | **Systèmes Fonctionnels** | |
+| | Gestionnaire d’Entrées (`Keyboard`, `Mouse`, `Touch`) | ✅ |
+| | Gestionnaire d’Assets (textures, sons, fonts, JSON) | ⏳ |
+| | Sauvegarde versionnée (JSON + SQLite fallback) | 🔜 |
+| | AudioManager (musique + effets, pause/loop) | 🔜 |
+| | Gestion multi-résolution & DPI-aware | ✅ |
+
+| **Phase 4** | **Systèmes Avancés & Extensibilité** | |
+| | ECS modulaire (Entity/Component/Systems) | 🔜 |
+| | PluginManager (chargement à chaud, modules dynamiques) | 🔜 |
+| | AssetStreamingManager (threadé, async, cache LRU) | 🔜 |
+| | Simulation orientée data (update deterministic) | 🔜 |
+
+| **Phase 5** | **Tests, Debug & Release** | |
+| | Tests unitaires complets (GoogleTest) | ✅ |
+| | Debug Overlay (runtime logs, FPS, profiling) | ⏳ |
+| | Packaging `.apk` / `.exe` via GitHub Actions | ✅ |
+| | Profiler intégré (macros, auto-instrumentation) | 🔜 |
+
+| **Phase 6** | **Jeu de démo natif** | |
+| | Prototype jeu type stratégie/gestion (Modern Age++ like) | 🔜 |
+| | UI ingame complète (menus, sliders, cartes, overlay) | 🔜 |
+| | Déploiement sur Windows et Android (Play Store-ready) | 🔜 |
+
 
 ---
 
