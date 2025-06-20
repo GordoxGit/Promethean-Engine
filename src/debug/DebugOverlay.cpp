@@ -40,9 +40,7 @@ void DebugOverlay::Update(float dt)
 
 void DebugOverlay::Render(BatchRenderer& renderer)
 {
-    if (!renderer.GetShader()) return;
-
-    // BatchRenderer::Begin exige width & height, ici on passe 1 pour tests headless
+    // Exécute quand même le rendu même si aucun shader n'est actif (tests headless)
     renderer.Begin(1, 1);
 
     const auto white = glm::vec4(1.f);
