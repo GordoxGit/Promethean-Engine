@@ -72,6 +72,11 @@ add_library(engine
     # ── Renderer ────────────────────────────────────────────────────
     src/renderer/BatchRenderer.cpp     src/renderer/BatchRenderer.h
     src/renderer/RenderEvents.h
+    # ── UI -------------------------------------------------------------------
+    src/ui/Button.cpp                  src/ui/Button.h
+    src/ui/Widget.h
+    # ── Assets ---------------------------------------------------------------
+    src/assets/AssetManager.h
 )
 add_library(Promethean::Engine ALIAS engine)
 
@@ -165,6 +170,7 @@ if(PROMETHEAN_BUILD_TESTS AND NOT ANDROID)
         tests/core/TestLogSystem.cpp
         tests/core/TestEventBus.cpp
         tests/renderer/TestBatchRenderer.cpp
+        tests/ui/TestButton.cpp
     )
 
     target_link_libraries(engine_tests
