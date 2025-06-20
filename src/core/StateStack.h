@@ -6,9 +6,9 @@
 #include <vector>
 #include <memory>
 #include <SDL.h>
+#include "core/State.h"  // ← AJOUT NÉCESSAIRE : définition complète de State
 
 class BatchRenderer;
-class State;
 
 /// Lifecycle actions that can be queued for the state stack
 enum class StateAction { Push, Pop, Replace };
