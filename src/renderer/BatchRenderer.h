@@ -50,6 +50,11 @@ public:
                   const QuadUV&    uv   = {},
                   const glm::vec4& tint = {1.f,1.f,1.f,1.f});
 
+    /** Draw a colored line from A to B. */
+    void DrawLine(const glm::vec2& a,
+                  const glm::vec2& b,
+                  const glm::vec4& color = {1.f,1.f,1.f,1.f});
+
     /** Flush immédiat puis publication de FrameRenderedEvent. */
     void Flush();
 
@@ -76,5 +81,6 @@ namespace TestGL {
     const float* GetLastBufferData();
     glm::vec4 GetLastTint();
     int      GetLastUniformTexture();
+    int      GetDrawArraysCount();
 }
 #endif

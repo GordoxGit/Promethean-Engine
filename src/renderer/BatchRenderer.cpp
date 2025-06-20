@@ -60,6 +60,7 @@ using GLboolean   = unsigned char;
 #define GL_COMPILE_STATUS  0
 #define GL_LINK_STATUS     0
 #define GL_TRIANGLES       0
+#define GL_LINES           0
 #define GL_TEXTURE_2D      0
 
 // ----------------------------------------------------------------------
@@ -290,6 +291,33 @@ void BatchRenderer::DrawQuad(const glm::vec2& pos, const glm::vec2& size,
     GL_CHECK(glDrawArrays(GL_TRIANGLES, 0, 6));
 }
 
+void BatchRenderer::DrawLine(const glm::vec2& a, const glm::vec2& b,
+                             const glm::vec4& color)
+{
+    if (!m_initialized)
+    {
+        LogSystem::Instance().Error("DrawLine called before Init");
+        return;
+    }
+
+    const float verts[8] = {
+        a.x, a.y, 0.f, 0.f,
+        b.x, b.y, 1.f, 1.f
+    };
+
+    GL_CHECK(glBindBuffer(GL_ARRAY_BUFFER, m_vbo));
+    GL_CHECK(glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(verts), verts));
+
+    GLint locTint = glGetUniformLocation(m_shader, "u_tint");
+    GL_CHECK(glUniform4fv(locTint, 1, &color[0]));
+    GLint locTex = glGetUniformLocation(m_shader, "u_tex");
+    GL_CHECK(glUniform1i(locTex, 0));
+
+    GL_CHECK(glUseProgram(m_shader));
+    GL_CHECK(glBindVertexArray(m_vao));
+    GL_CHECK(glDrawArrays(GL_LINES, 0, 2));
+}
+
 void BatchRenderer::Flush()
 {
     if (!m_initialized)
@@ -314,5 +342,6 @@ uint32_t GetLastBoundTexture()    { return lastBoundTexture; }
 const float* GetLastBufferData()  { return lastBufferData; }
 glm::vec4 GetLastTint()           { return lastTint; }
 int      GetLastUniformTexture()  { return lastUniformTexture; }
+int      GetDrawArraysCount()     { return drawArraysCount; }
 }
 #endif

@@ -72,6 +72,9 @@ add_library(engine
     # ── Renderer ────────────────────────────────────────────────────
     src/renderer/BatchRenderer.cpp     src/renderer/BatchRenderer.h
     src/renderer/RenderEvents.h
+    # ── Debug ---------------------------------------------------------------
+    src/debug/DebugOverlay.cpp         src/debug/DebugOverlay.h
+    src/debug/DebugPrimitives.h
     # ── UI -------------------------------------------------------------------
     src/ui/Button.cpp                  src/ui/Button.h
     src/ui/HorizontalLayout.cpp        src/ui/HorizontalLayout.h
@@ -173,6 +176,7 @@ if(PROMETHEAN_BUILD_TESTS AND NOT ANDROID)
         tests/core/TestLogSystem.cpp
         tests/core/TestEventBus.cpp
         tests/renderer/TestBatchRenderer.cpp
+        tests/debug/TestDebugOverlay.cpp
         tests/ui/TestButton.cpp
         tests/ui/TestLayout.cpp
     )
