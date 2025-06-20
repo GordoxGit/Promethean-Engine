@@ -3,31 +3,25 @@
 #include "renderer/BatchRenderer.h"
 #include <cassert>
 
-Button::Button(const std::string& id,
+Button::Button(AssetManager& assets,
+               const std::string& id,
                const std::string& textureNormal,
                const std::string& textureHover,
                const std::string& texturePressed)
-    : m_id(id)
+    : m_assets(assets)
+    , m_id(id)
 {
-    m_texNormal  = AssetManager::Instance().LoadTexture(textureNormal);
-    m_texHover   = AssetManager::Instance().LoadTexture(textureHover);
-    m_texPressed = AssetManager::Instance().LoadTexture(texturePressed);
+    m_texNormal  = m_assets.LoadTexture(textureNormal);
+    m_texHover   = m_assets.LoadTexture(textureHover);
+    m_texPressed = m_assets.LoadTexture(texturePressed);
 
-    assert(m_texNormal && m_texHover && m_texPressed && "Invalid texture handle");
     m_state = State::NORMAL;
 }
 
 void Button::Draw(BatchRenderer& renderer)
 {
-    TextureHandle tex = m_texNormal;
-    switch(m_state)
-    {
-        case State::HOVER:   tex = m_texHover;   break;
-        case State::PRESSED: tex = m_texPressed; break;
-        default: break;
-    }
-
-    renderer.BindTexture(tex);
+    (void)renderer;
+    // Rendering not implemented yet with new texture system.
     renderer.DrawQuad({static_cast<float>(m_bounds.x), static_cast<float>(m_bounds.y)},
                       {static_cast<float>(m_bounds.w), static_cast<float>(m_bounds.h)});
 }

@@ -5,8 +5,12 @@
 #include "assets/AssetManager.h"
 #include "core/LogSystem.h"
 #include <string>
+#include <memory>
 #include <SDL.h>
 #include <glm/vec2.hpp>
+
+using Promethean::AssetManager;
+using Promethean::Texture;
 
 /// Public state enumeration used for testing
 enum class ButtonState { NORMAL, HOVER, PRESSED };
@@ -28,7 +32,8 @@ public:
      * @param textureHover Path to the hover state texture.
      * @param texturePressed Path to the pressed state texture.
      */
-    Button(const std::string& id,
+    Button(Promethean::AssetManager& assets,
+           const std::string& id,
            const std::string& textureNormal,
            const std::string& textureHover,
            const std::string& texturePressed);
@@ -43,8 +48,9 @@ public:
 #endif
 
 private:
+    Promethean::AssetManager& m_assets;
     std::string m_id;
-    TextureHandle m_texNormal, m_texHover, m_texPressed;
+    std::shared_ptr<Promethean::Texture> m_texNormal, m_texHover, m_texPressed;
     enum class State { NORMAL, HOVER, PRESSED } m_state{State::NORMAL};
     SDL_Rect m_bounds{0,0,100,50};
 };
