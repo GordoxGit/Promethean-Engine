@@ -1,5 +1,6 @@
 #include "core/Engine.h"
 #include "core/StateStack.h"
+#include "core/State.h"
 #include "renderer/BatchRenderer.h"
 
 #include <cstdlib>
