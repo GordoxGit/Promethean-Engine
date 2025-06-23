@@ -84,7 +84,7 @@ add_library(engine
     src/ui/WidgetContainer.h
     src/ui/Widget.h
     # ── Assets ---------------------------------------------------------------
-    src/assets/AssetManager.cpp            src/assets/AssetManager.h
+    src/assets/AssetManager.cpp        src/assets/AssetManager.h
 )
 add_library(Promethean::Engine ALIAS engine)
 
@@ -94,10 +94,30 @@ target_include_directories(engine
         $<INSTALL_INTERFACE:include>
 )
 
+# --------------------------------------------------------------------
+# Gestion explicite de SDL2 et SDL2main pour éviter les alias manquants
+# --------------------------------------------------------------------
+# Choix de la cible SDL2 (statique ou dynamique)
+if(TARGET SDL2::SDL2)
+    set(PROM_SDL2_TARGET SDL2::SDL2)
+elseif(TARGET SDL2::SDL2-static)
+    set(PROM_SDL2_TARGET SDL2::SDL2-static)
+else()
+    message(FATAL_ERROR "Ni SDL2::SDL2 ni SDL2::SDL2-static n'ont été trouvés !")
+endif()
+
+# SDL2main est optionnel
+if(TARGET SDL2::SDL2main)
+    set(PROM_SDL2MAIN_TARGET SDL2::SDL2main)
+else()
+    set(PROM_SDL2MAIN_TARGET)
+endif()
+
+# Liaison des bibliothèques du moteur
 target_link_libraries(engine
     PUBLIC
-        $<TARGET_NAME_IF_EXISTS:SDL2::SDL2main>
-        $<IF:$<TARGET_EXISTS:SDL2::SDL2>,SDL2::SDL2,SDL2::SDL2-static>
+        ${PROM_SDL2MAIN_TARGET}
+        ${PROM_SDL2_TARGET}
         ${PROM_GFX_LIB}
         spdlog::spdlog
         glm::glm
@@ -121,7 +141,7 @@ target_compile_definitions(engine PRIVATE
 )
 
 # --------------------------------------------------------------------
-# Mode « head-less » : on neutralise OpenGL quand on construit les tests
+# Mode « head-less » : neutralise OpenGL pour les tests CI
 # --------------------------------------------------------------------
 if(PROMETHEAN_BUILD_TESTS AND NOT ANDROID)
     target_compile_definitions(engine PRIVATE HEADLESS_GL TESTING)
@@ -260,7 +280,7 @@ endif()
 message(STATUS "======================================")
 
 # ====================================================================
-#                    Packaging (desktop uniquement)
+##                    Packaging (desktop uniquement)
 # ====================================================================
 if(NOT ANDROID)
     set(CPACK_PACKAGE_NAME                "PrometheanEngine")
