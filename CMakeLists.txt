@@ -95,9 +95,8 @@ target_include_directories(engine
 )
 
 # --------------------------------------------------------------------
-# Gestion explicite de SDL2 et SDL2main pour éviter les alias manquants
+# Gestion explicite de SDL2 (core + main) pour éviter les alias manquants
 # --------------------------------------------------------------------
-# Choix de la cible SDL2 (statique ou dynamique)
 if(TARGET SDL2::SDL2)
     set(PROM_SDL2_TARGET SDL2::SDL2)
 elseif(TARGET SDL2::SDL2-static)
@@ -106,14 +105,15 @@ else()
     message(FATAL_ERROR "Ni SDL2::SDL2 ni SDL2::SDL2-static n'ont été trouvés !")
 endif()
 
-# SDL2main est optionnel
 if(TARGET SDL2::SDL2main)
     set(PROM_SDL2MAIN_TARGET SDL2::SDL2main)
 else()
-    set(PROM_SDL2MAIN_TARGET)
+    set(PROM_SDL2MAIN_TARGET) # vide si absent
 endif()
 
+# --------------------------------------------------------------------
 # Liaison des bibliothèques du moteur
+# --------------------------------------------------------------------
 target_link_libraries(engine
     PUBLIC
         ${PROM_SDL2MAIN_TARGET}
@@ -121,9 +121,18 @@ target_link_libraries(engine
         ${PROM_GFX_LIB}
         spdlog::spdlog
         glm::glm
-        SDL2_image::SDL2_image
-        SDL2_mixer::SDL2_mixer
-        SDL2_ttf::SDL2_ttf
+
+        # SDL2_image : shared ou static selon disponibilité
+        $<$<TARGET_EXISTS:SDL2_image::SDL2_image>:SDL2_image::SDL2_image>
+        $<$<NOT:$<TARGET_EXISTS:SDL2_image::SDL2_image>>:SDL2_image::SDL2_image-static>
+
+        # SDL2_mixer : idem
+        $<$<TARGET_EXISTS:SDL2_mixer::SDL2_mixer>:SDL2_mixer::SDL2_mixer>
+        $<$<NOT:$<TARGET_EXISTS:SDL2_mixer::SDL2_mixer>>:SDL2_mixer::SDL2_mixer-static>
+
+        # SDL2_ttf : idem
+        $<$<TARGET_EXISTS:SDL2_ttf::SDL2_ttf>:SDL2_ttf::SDL2_ttf>
+        $<$<NOT:$<TARGET_EXISTS:SDL2_ttf::SDL2_ttf>>:SDL2_ttf::SDL2_ttf-static>
 )
 
 target_compile_features(engine PUBLIC cxx_std_17)
@@ -280,7 +289,7 @@ endif()
 message(STATUS "======================================")
 
 # ====================================================================
-##                    Packaging (desktop uniquement)
+#                    Packaging (desktop uniquement)
 # ====================================================================
 if(NOT ANDROID)
     set(CPACK_PACKAGE_NAME                "PrometheanEngine")
@@ -289,3 +298,4 @@ if(NOT ANDROID)
     set(CPACK_PACKAGE_VENDOR              "Promethean Engine Team")
     include(CPack)
 endif()
+
