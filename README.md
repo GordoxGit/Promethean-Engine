@@ -155,7 +155,6 @@ int main() {
 
 ## 📝 Contribution
 
-- 1 ticket = 1 PR (suivi via GitHub Projects)
 - Tests obligatoires pour les modules
 - Review obligatoire avant merge
 - Linting, formatage et naming cohérent (`snake_case`, `PascalCase` pour classes)
