@@ -129,3 +129,13 @@ install_manifest.txt
 compile_commands.json
 CTestTestfile.cmake
 _deps/
+# Binaires de build
+/build/
+*.dll
+*.exe
+*.lib
+*.so
+*.a
+*.dylib
+# Assets audio binaires
+assets/audio/*
