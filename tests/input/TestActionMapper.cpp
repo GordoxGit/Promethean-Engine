@@ -1,7 +1,9 @@
 #include "input/ActionMapper.h"
 #include "core/EventBus.h"
 #include <gtest/gtest.h>
-#include <malloc.h>
+#if defined(__linux__)
+#  include <malloc.h>
+#endif
 
 using Promethean::ActionMapper;
 
@@ -49,10 +51,14 @@ TEST(ActionMapper, NoAllocations)
 {
     ActionMapper m; m.mapKey(SDL_SCANCODE_A, PlayerAction::MoveLeft);
     m.handleEvent(KeyDown(SDL_SCANCODE_A)); // warm-up
+#if defined(__linux__)
     auto before = mallinfo();
     m.handleEvent(KeyDown(SDL_SCANCODE_A));
-    auto after = mallinfo();
+    auto after  = mallinfo();
     EXPECT_EQ(after.uordblks, before.uordblks);
+#else
+    GTEST_SKIP() << "mallinfo n'est pas disponible sur cette plateforme.";
+#endif
 }
 
 TEST(ActionMapper, EventBusPublication)
