@@ -72,6 +72,11 @@ add_library(engine
     # ── Renderer ────────────────────────────────────────────────────
     src/renderer/BatchRenderer.cpp     src/renderer/BatchRenderer.h
     src/renderer/RenderEvents.h
+    # ── Input ---------------------------------------------------------------
+    src/input/ActionMapper.cpp         src/input/ActionMapper.h
+    src/input/InputManager.cpp         src/input/InputManager.h
+    src/input/PlayerAction.h
+    src/input/InputEvents.h
     # ── Debug ---------------------------------------------------------------
     src/debug/DebugOverlay.cpp         src/debug/DebugOverlay.h
     src/debug/DebugPrimitives.h
@@ -206,6 +211,7 @@ if(PROMETHEAN_BUILD_TESTS AND NOT ANDROID)
         tests/renderer/TestBatchRenderer.cpp
         tests/debug/TestDebugOverlay.cpp
         tests/assets/TestAssetManager.cpp
+        tests/input/TestActionMapper.cpp
         tests/ui/TestButton.cpp
         tests/ui/TestLayout.cpp
         tests/ui/TestSlider.cpp
