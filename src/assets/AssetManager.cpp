@@ -33,9 +33,9 @@ struct AssetManager::Impl {
     void Insert(const std::string& key, std::shared_ptr<void> res)
     {
         if(cache.size() >= capacity) {
-            const std::string& old = lru.back();
+            std::string oldKey = lru.back();
             lru.pop_back();
-            cache.erase(old);
+            cache.erase(oldKey);
         }
         lru.push_front(key);
         cache[key] = {res, lru.begin()};
