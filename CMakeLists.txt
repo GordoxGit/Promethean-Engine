@@ -79,6 +79,7 @@ add_library(engine
     src/ui/Button.cpp                  src/ui/Button.h
     src/ui/HorizontalLayout.cpp        src/ui/HorizontalLayout.h
     src/ui/VerticalLayout.cpp          src/ui/VerticalLayout.h
+    src/ui/Slider.cpp                  src/ui/Slider.h
     src/ui/WidgetContainer.h
     src/ui/Widget.h
     # ── Assets ---------------------------------------------------------------
@@ -207,6 +208,7 @@ if(PROMETHEAN_BUILD_TESTS AND NOT ANDROID)
         tests/assets/TestAssetManager.cpp
         tests/ui/TestButton.cpp
         tests/ui/TestLayout.cpp
+        tests/ui/TestSlider.cpp
     )
 
     target_link_libraries(engine_tests
