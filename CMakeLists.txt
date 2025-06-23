@@ -80,6 +80,10 @@ add_library(engine
     # ── Debug ---------------------------------------------------------------
     src/debug/DebugOverlay.cpp         src/debug/DebugOverlay.h
     src/debug/DebugPrimitives.h
+    # ── Audio ---------------------------------------------------------------
+    src/audio/AudioEngine.cpp          src/audio/AudioEngine.h
+    src/audio/Sound.cpp                src/audio/Sound.h
+    src/audio/Music.cpp                src/audio/Music.h
     # ── UI -------------------------------------------------------------------
     src/ui/Button.cpp                  src/ui/Button.h
     src/ui/HorizontalLayout.cpp        src/ui/HorizontalLayout.h
@@ -215,6 +219,7 @@ if(PROMETHEAN_BUILD_TESTS AND NOT ANDROID)
         tests/ui/TestButton.cpp
         tests/ui/TestLayout.cpp
         tests/ui/TestSlider.cpp
+        tests/audio/TestAudioEngine.cpp
     )
 
     target_link_libraries(engine_tests
@@ -225,11 +230,11 @@ if(PROMETHEAN_BUILD_TESTS AND NOT ANDROID)
     include(GoogleTest)
     gtest_discover_tests(engine_tests
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-        PROPERTIES ENVIRONMENT "SDL_VIDEODRIVER=dummy"
+        PROPERTIES ENVIRONMENT "SDL_VIDEODRIVER=dummy;SDL_AUDIODRIVER=dummy"
     )
 
     add_test(NAME EngineTests COMMAND engine_tests WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
-    set_tests_properties(EngineTests PROPERTIES ENVIRONMENT "SDL_VIDEODRIVER=dummy;DISPLAY=" TIMEOUT 60)
+    set_tests_properties(EngineTests PROPERTIES ENVIRONMENT "SDL_VIDEODRIVER=dummy;SDL_AUDIODRIVER=dummy;DISPLAY=" TIMEOUT 60)
 endif()
 
 # ====================================================================
