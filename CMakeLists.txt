@@ -13,11 +13,9 @@ project(PrometheanEngine
 #                  Choix de la pile graphique
 # ====================================================================
 if(ANDROID)
-    # >>> Mobile : OpenGL ES 3.x (lib fournie par le NDK)
-    set(PROM_GFX_LIB GLESv2)
+    set(PROM_GFX_LIB GLESv2)                         # OpenGL ES
 else()
-    # >>> Desktop : OpenGL + GLEW via vcpkg
-    find_package(OpenGL 3.3 REQUIRED)
+    find_package(OpenGL 3.3 REQUIRED)                # Desktop GL
     find_package(GLEW   REQUIRED)
     set(PROM_GFX_LIB OpenGL::GL GLEW::GLEW)
 endif()
@@ -38,7 +36,7 @@ if(ANDROID)
     set(PROMETHEAN_BUILD_TESTS OFF CACHE BOOL "Tests disabled on Android" FORCE)
 endif()
 
-# Dossiers de sortie
+# Répertoires de sortie
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
@@ -50,12 +48,12 @@ endif()
 # ====================================================================
 #                         Dépendances vcpkg
 # ====================================================================
-find_package(SDL2          CONFIG REQUIRED)
+find_package(SDL2          CONFIG REQUIRED)          # toujours
 find_package(spdlog        CONFIG REQUIRED)
 find_package(glm           CONFIG REQUIRED)
 find_package(nlohmann_json CONFIG REQUIRED)
 
-if(NOT ANDROID)
+if(NOT ANDROID)                                     # extensions SDL2 uniquement desktop
     find_package(SDL2_image CONFIG REQUIRED)
     find_package(SDL2_mixer CONFIG REQUIRED)
     find_package(SDL2_ttf   CONFIG REQUIRED)
@@ -99,16 +97,14 @@ target_include_directories(engine
 # --------------------------------------------------------------------
 if(TARGET SDL2::SDL2)
     set(PROM_SDL2_TARGET SDL2::SDL2)
-elseif(TARGET SDL2::SDL2-static)
+elseif(TARGET SDL2::SDL2-static)                     # triplet static
     set(PROM_SDL2_TARGET SDL2::SDL2-static)
 else()
     message(FATAL_ERROR "Ni SDL2::SDL2 ni SDL2::SDL2-static n'ont été trouvés !")
 endif()
 
-if(TARGET SDL2::SDL2main)
+if(TARGET SDL2::SDL2main)                            # optionnel hors Linux
     set(PROM_SDL2MAIN_TARGET SDL2::SDL2main)
-else()
-    set(PROM_SDL2MAIN_TARGET) # vide si absent
 endif()
 
 # --------------------------------------------------------------------
@@ -121,18 +117,14 @@ target_link_libraries(engine
         ${PROM_GFX_LIB}
         spdlog::spdlog
         glm::glm
-
-        # SDL2_image : shared ou static selon disponibilité
-        $<$<TARGET_EXISTS:SDL2_image::SDL2_image>:SDL2_image::SDL2_image>
-        $<$<NOT:$<TARGET_EXISTS:SDL2_image::SDL2_image>>:SDL2_image::SDL2_image-static>
-
-        # SDL2_mixer : idem
-        $<$<TARGET_EXISTS:SDL2_mixer::SDL2_mixer>:SDL2_mixer::SDL2_mixer>
-        $<$<NOT:$<TARGET_EXISTS:SDL2_mixer::SDL2_mixer>>:SDL2_mixer::SDL2_mixer-static>
-
-        # SDL2_ttf : idem
-        $<$<TARGET_EXISTS:SDL2_ttf::SDL2_ttf>:SDL2_ttf::SDL2_ttf>
-        $<$<NOT:$<TARGET_EXISTS:SDL2_ttf::SDL2_ttf>>:SDL2_ttf::SDL2_ttf-static>
+        $<$<NOT:$<BOOL:${ANDROID}>>:                 # ⇐ extensions uniquement desktop
+            $<$<TARGET_EXISTS:SDL2_image::SDL2_image>:SDL2_image::SDL2_image>
+            $<$<NOT:$<TARGET_EXISTS:SDL2_image::SDL2_image>>:SDL2_image::SDL2_image-static>
+            $<$<TARGET_EXISTS:SDL2_mixer::SDL2_mixer>:SDL2_mixer::SDL2_mixer>
+            $<$<NOT:$<TARGET_EXISTS:SDL2_mixer::SDL2_mixer>>:SDL2_mixer::SDL2_mixer-static>
+            $<$<TARGET_EXISTS:SDL2_ttf::SDL2_ttf>:SDL2_ttf::SDL2_ttf>
+            $<$<NOT:$<TARGET_EXISTS:SDL2_ttf::SDL2_ttf>>:SDL2_ttf::SDL2_ttf-static>
+        >
 )
 
 target_compile_features(engine PUBLIC cxx_std_17)
@@ -150,7 +142,7 @@ target_compile_definitions(engine PRIVATE
 )
 
 # --------------------------------------------------------------------
-# Mode « head-less » : neutralise OpenGL pour les tests CI
+# Mode « head-less » pour les tests CI desktop
 # --------------------------------------------------------------------
 if(PROMETHEAN_BUILD_TESTS AND NOT ANDROID)
     target_compile_definitions(engine PRIVATE HEADLESS_GL TESTING)
@@ -218,9 +210,7 @@ if(PROMETHEAN_BUILD_TESTS AND NOT ANDROID)
     )
 
     target_link_libraries(engine_tests
-        PRIVATE
-            Promethean::Engine
-            GTest::gtest_main
+        PRIVATE Promethean::Engine GTest::gtest_main
     )
     target_compile_definitions(engine_tests PRIVATE TESTING)
 
@@ -230,15 +220,8 @@ if(PROMETHEAN_BUILD_TESTS AND NOT ANDROID)
         PROPERTIES ENVIRONMENT "SDL_VIDEODRIVER=dummy"
     )
 
-    add_test(
-        NAME EngineTests
-        COMMAND engine_tests
-        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-    )
-    set_tests_properties(EngineTests PROPERTIES
-        ENVIRONMENT "SDL_VIDEODRIVER=dummy;DISPLAY="
-        TIMEOUT 60
-    )
+    add_test(NAME EngineTests COMMAND engine_tests WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+    set_tests_properties(EngineTests PROPERTIES ENVIRONMENT "SDL_VIDEODRIVER=dummy;DISPLAY=" TIMEOUT 60)
 endif()
 
 # ====================================================================
@@ -247,26 +230,21 @@ endif()
 include(GNUInstallDirs)
 
 install(TARGETS engine
-    EXPORT PrometheanEngineTargets
-    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-)
+        EXPORT  PrometheanEngineTargets
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 
-install(DIRECTORY src/
-    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/promethean
-    FILES_MATCHING PATTERN "*.h"
-)
+install(DIRECTORY src/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/promethean FILES_MATCHING PATTERN "*.h")
 
 if(TARGET promethean)
     install(TARGETS promethean DESTINATION ${CMAKE_INSTALL_BINDIR})
 endif()
 
 install(EXPORT PrometheanEngineTargets
-    FILE        PrometheanEngineTargets.cmake
-    NAMESPACE   Promethean::
-    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/PrometheanEngine
-)
+        FILE        PrometheanEngineTargets.cmake
+        NAMESPACE   Promethean::
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/PrometheanEngine)
 
 # ====================================================================
 #                         Résumé de configuration
@@ -279,7 +257,6 @@ message(STATUS "Platform:       ${CMAKE_SYSTEM_NAME}")
 message(STATUS "Compiler:       ${CMAKE_CXX_COMPILER_ID}")
 message(STATUS "Build tests:    ${PROMETHEAN_BUILD_TESTS}")
 message(STATUS "Install prefix: ${CMAKE_INSTALL_PREFIX}")
-
 if(ANDROID)
     message(STATUS "Android ABI:      ${ANDROID_ABI}")
     message(STATUS "Android Platform: ${ANDROID_PLATFORM}")
@@ -298,4 +275,3 @@ if(NOT ANDROID)
     set(CPACK_PACKAGE_VENDOR              "Promethean Engine Team")
     include(CPack)
 endif()
-
