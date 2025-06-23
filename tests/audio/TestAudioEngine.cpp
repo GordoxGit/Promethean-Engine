@@ -6,7 +6,26 @@
 #ifdef TESTING
 extern "C" {
 static int dummy_channels = 8;
-#if defined(_WIN32)
+#if defined(__linux__)
+int __wrap_Mix_OpenAudio(int, Uint16, int, int){ return 0; }
+void __wrap_Mix_CloseAudio(){}
+int __wrap_Mix_AllocateChannels(int n){ if(n!=-1) dummy_channels=n; return dummy_channels; }
+static Uint8 dummy_data[4] = {0};
+Mix_Chunk* __wrap_Mix_LoadWAV(const char*){ return Mix_QuickLoad_RAW(dummy_data, sizeof(dummy_data)); }
+Mix_Music* __wrap_Mix_LoadMUS(const char*){ return reinterpret_cast<Mix_Music*>(0x1); }
+int __wrap_Mix_PlayChannel(int, Mix_Chunk*, int){ static int c=0; return c++; }
+int __wrap_Mix_PlayMusic(Mix_Music*, int){ return 0; }
+int __wrap_Mix_FadeInMusic(Mix_Music*, int, int){ return 0; }
+int __wrap_Mix_HaltChannel(int){ return 0; }
+int __wrap_Mix_HaltMusic(){ return 0; }
+void __wrap_Mix_PauseMusic(){}
+void __wrap_Mix_ResumeMusic(){}
+int __wrap_Mix_Volume(int, int v){ static int vol=MIX_MAX_VOLUME; if(v!=-1) vol=v; return vol; }
+int __wrap_Mix_VolumeMusic(int v){ static int vol=MIX_MAX_VOLUME; if(v!=-1) vol=v; return vol; }
+void __wrap_Mix_FreeChunk(Mix_Chunk*){}
+void __wrap_Mix_FreeMusic(Mix_Music*){}
+const char* __wrap_Mix_GetError(){ return ""; }
+#elif defined(_WIN32)
 int Mix_OpenAudio(int, Uint16, int, int){ return 0; }
 void Mix_CloseAudio(){}
 int Mix_AllocateChannels(int n){ if(n!=-1) dummy_channels=n; return dummy_channels; }
@@ -26,24 +45,7 @@ void Mix_FreeChunk(Mix_Chunk*){}
 void Mix_FreeMusic(Mix_Music*){}
 const char* Mix_GetError(){ return ""; }
 #else
-int __wrap_Mix_OpenAudio(int, Uint16, int, int){ return 0; }
-void __wrap_Mix_CloseAudio(){}
-int __wrap_Mix_AllocateChannels(int n){ if(n!=-1) dummy_channels=n; return dummy_channels; }
-static Uint8 dummy_data[4] = {0};
-Mix_Chunk* __wrap_Mix_LoadWAV(const char*){ return Mix_QuickLoad_RAW(dummy_data, sizeof(dummy_data)); }
-Mix_Music* __wrap_Mix_LoadMUS(const char*){ return reinterpret_cast<Mix_Music*>(0x1); }
-int __wrap_Mix_PlayChannel(int, Mix_Chunk*, int){ static int c=0; return c++; }
-int __wrap_Mix_PlayMusic(Mix_Music*, int){ return 0; }
-int __wrap_Mix_FadeInMusic(Mix_Music*, int, int){ return 0; }
-int __wrap_Mix_HaltChannel(int){ return 0; }
-int __wrap_Mix_HaltMusic(){ return 0; }
-void __wrap_Mix_PauseMusic(){}
-void __wrap_Mix_ResumeMusic(){}
-int __wrap_Mix_Volume(int, int v){ static int vol=MIX_MAX_VOLUME; if(v!=-1) vol=v; return vol; }
-int __wrap_Mix_VolumeMusic(int v){ static int vol=MIX_MAX_VOLUME; if(v!=-1) vol=v; return vol; }
-void __wrap_Mix_FreeChunk(Mix_Chunk*){}
-void __wrap_Mix_FreeMusic(Mix_Music*){}
-const char* __wrap_Mix_GetError(){ return ""; }
+#define SKIP_NO_MIX_WRAP
 #endif
 }
 #endif
@@ -73,6 +75,9 @@ TEST(AudioEngine, MasterVolume){
 }
 
 TEST(AudioEngine, NoFileWrites){
+#ifdef SKIP_NO_MIX_WRAP
+    GTEST_SKIP() << "Wrap SDL_mixer non supporté sur cette plateforme.";
+#endif
     AudioEngine a; a.init();
     a.playSound("x.wav");
     SUCCEED();

@@ -227,25 +227,16 @@ if(PROMETHEAN_BUILD_TESTS AND NOT ANDROID)
     )
     target_compile_definitions(engine_tests PRIVATE TESTING)
 
-    if(NOT MSVC)
+    # === Wrappers Mix_* pour Linux uniquement ===
+    if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
         set(WRAPPED_FUNCS
-            Mix_OpenAudio
-            Mix_CloseAudio
-            Mix_AllocateChannels
-            Mix_LoadWAV
-            Mix_LoadMUS
-            Mix_PlayChannel
-            Mix_PlayMusic
-            Mix_FadeInMusic
-            Mix_HaltChannel
-            Mix_HaltMusic
-            Mix_PauseMusic
-            Mix_ResumeMusic
-            Mix_Volume
-            Mix_VolumeMusic
-            Mix_FreeChunk
-            Mix_FreeMusic
-            Mix_GetError
+            Mix_OpenAudio Mix_CloseAudio Mix_AllocateChannels
+            Mix_LoadWAV   Mix_LoadMUS
+            Mix_PlayChannel Mix_PlayMusic Mix_FadeInMusic
+            Mix_HaltChannel Mix_HaltMusic
+            Mix_PauseMusic Mix_ResumeMusic
+            Mix_Volume Mix_VolumeMusic
+            Mix_FreeChunk Mix_FreeMusic Mix_GetError
         )
         foreach(f ${WRAPPED_FUNCS})
             target_link_options(engine_tests PRIVATE "-Wl,--wrap=${f}")
