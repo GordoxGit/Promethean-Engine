@@ -2,6 +2,8 @@
 #include "core/EventBus.h"
 #include <gtest/gtest.h>
 #include <SDL_mixer.h>
+#include <thread>
+#include <chrono>
 
 #ifdef TESTING
 extern "C" {
@@ -98,6 +100,7 @@ TEST(AudioEngine, StopAll){
     AudioEngine a; a.init();
     a.playSound("s.wav");
     a.playMusic("m.ogg");
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));
     ASSERT_NO_FATAL_FAILURE(a.stopAll());
     ASSERT_NO_FATAL_FAILURE(a.stopAll());
     a.shutdown();

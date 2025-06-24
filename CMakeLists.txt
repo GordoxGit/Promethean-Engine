@@ -31,9 +31,10 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 option(PROMETHEAN_BUILD_TESTS    "Build unit tests"    ON)
 option(PROMETHEAN_BUILD_EXAMPLES "Build examples"      ON)
+option(PROMETHEAN_CI_ANDROID     "Android build running in CI" OFF)
 
-if(ANDROID)
-    set(PROMETHEAN_BUILD_TESTS OFF CACHE BOOL "Tests disabled on Android" FORCE)
+if(ANDROID AND PROMETHEAN_CI_ANDROID)
+    set(PROMETHEAN_BUILD_TESTS OFF CACHE BOOL "Tests disabled on Android CI" FORCE)
 endif()
 
 # Répertoires de sortie
@@ -163,6 +164,9 @@ endif()
 # ====================================================================
 if(ANDROID)
     target_compile_definitions(engine PRIVATE PROMETHEAN_ANDROID GRAPHICS_API_GLES)
+
+    find_package(SDL2_mixer CONFIG REQUIRED)
+    target_link_libraries(engine PUBLIC SDL2_mixer::SDL2_mixer)
 
     target_link_libraries(engine PUBLIC
         android

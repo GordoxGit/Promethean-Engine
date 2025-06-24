@@ -34,6 +34,7 @@ private:
     std::unordered_map<std::string, ChunkPtr> m_sounds;
     std::unordered_map<std::string, MusicPtr> m_music;
     float m_masterVolume = 1.0f;
+    bool  m_initialized  = false;
 };
 
 }

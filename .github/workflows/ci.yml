@@ -209,6 +209,11 @@ jobs:
           ANDROID_NDK_HOME: ${{ env.ANDROID_NDK_HOME }}
           VCPKG_CMAKE_SYSTEM_NAME: Android
 
+      - name: Install SDL_mixer for Android
+        run: |
+          cd vcpkg
+          ./vcpkg install sdl2-mixer:arm64-android
+
       - name: Configure CMake for Android
         run: |
           TRIPLET="arm64-android"
@@ -223,7 +228,7 @@ jobs:
             -DANDROID_ABI="${{ matrix.abi }}" \
             -DANDROID_PLATFORM=android-21 \
             -DANDROID_STL=c++_shared \
-            -DPROMETHEAN_BUILD_TESTS=OFF \
+            -DPROMETHEAN_CI_ANDROID=ON \
             -DPROMETHEAN_BUILD_EXAMPLES=OFF
 
       - name: Build Android

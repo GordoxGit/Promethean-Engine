@@ -9,10 +9,12 @@ bool AudioEngine::init()
     if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 1024) != 0)
     {
         LogSystem::Instance().Error("Mix_OpenAudio failed: {}", Mix_GetError());
+        m_initialized = false;
         return false;
     }
     Mix_AllocateChannels(32);
     setMasterVolume(1.0f);
+    m_initialized = true;
     return true;
 }
 
@@ -29,6 +31,7 @@ void AudioEngine::shutdown()
     }
     m_music.clear();
     Mix_CloseAudio();
+    m_initialized = false;
 }
 
 int AudioEngine::playSound(const std::string& name, float volume)
@@ -114,21 +117,19 @@ void AudioEngine::resumeMusic()
 
 void AudioEngine::stopAll()
 {
-    if (Mix_QuerySpec(nullptr, nullptr, nullptr) == 0) return;
+    if (!m_initialized) return;
 
-    Mix_HaltChannel(-1);
     Mix_HaltMusic();
+    Mix_HaltChannel(-1);
 
-    for (auto& [_, mus] : m_music) {
-        Mix_Music* ptr = mus.release();
-        if (ptr) Mix_FreeMusic(ptr);
-    }
-    for (auto& [_, chk] : m_sounds) {
-        Mix_Chunk* ptr = chk.release();
-        if (ptr) Mix_FreeChunk(ptr);
-    }
-    m_music.clear();
-    m_sounds.clear();
+    auto safeErase = [](auto& map, auto freeFn){
+        for (auto it = map.begin(); it != map.end(); ) {
+            if (it->second) freeFn(it->second.release());
+            it = map.erase(it);
+        }
+    };
+    safeErase(m_music,  Mix_FreeMusic);
+    safeErase(m_sounds, Mix_FreeChunk);
 
     EventBus::Instance().Publish(AudioEvent{AudioEvent::Type::StopAll, "", 0.f});
 }
