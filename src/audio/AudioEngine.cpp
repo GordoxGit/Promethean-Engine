@@ -30,6 +30,7 @@ void AudioEngine::shutdown()
         if (ptr) Mix_FreeMusic(ptr);
     }
     m_music.clear();
+    m_playingChannels.clear();
     Mix_CloseAudio();
     m_initialized = false;
 }
@@ -64,7 +65,10 @@ int AudioEngine::playSound(const std::string& name, float volume)
 
     int channel = Mix_PlayChannel(-1, chunk, 0);
     if(channel >= 0)
+    {
         Mix_Volume(channel, static_cast<int>(std::clamp(volume*m_masterVolume,0.f,1.f) * MIX_MAX_VOLUME));
+        m_playingChannels[channel] = name;
+    }
     EventBus::Instance().Publish(AudioEvent{AudioEvent::Type::PlaySFX, name, volume});
     return channel;
 }
@@ -115,12 +119,30 @@ void AudioEngine::resumeMusic()
     Mix_ResumeMusic();
 }
 
+void AudioEngine::stopSound(const std::string& name)
+{
+    if (!m_initialized) return;
+    for (auto it = m_playingChannels.begin(); it != m_playingChannels.end(); )
+    {
+        if (it->second == name)
+        {
+            Mix_HaltChannel(it->first);
+            it = m_playingChannels.erase(it);
+        }
+        else
+        {
+            ++it;
+        }
+    }
+}
+
 void AudioEngine::stopAll()
 {
     if (!m_initialized) return;
 
     Mix_HaltMusic();
     Mix_HaltChannel(-1);
+    m_playingChannels.clear();
 
     auto safeErase = [](auto& map, auto freeFn){
         for (auto it = map.begin(); it != map.end(); ) {

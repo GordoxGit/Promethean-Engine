@@ -8,6 +8,7 @@
 #ifdef TESTING
 extern "C" {
 static int dummy_channels = 8;
+static int last_halt_channel = -2;
 #if defined(__linux__)
 int __wrap_Mix_OpenAudio(int, Uint16, int, int){ return 0; }
 void __wrap_Mix_CloseAudio(){}
@@ -18,7 +19,7 @@ Mix_Music* __wrap_Mix_LoadMUS(const char*){ return reinterpret_cast<Mix_Music*>(
 int __wrap_Mix_PlayChannel(int, Mix_Chunk*, int){ static int c=0; return c++; }
 int __wrap_Mix_PlayMusic(Mix_Music*, int){ return 0; }
 int __wrap_Mix_FadeInMusic(Mix_Music*, int, int){ return 0; }
-int __wrap_Mix_HaltChannel(int){ return 0; }
+int __wrap_Mix_HaltChannel(int c){ last_halt_channel = c; return 0; }
 int __wrap_Mix_HaltMusic(){ return 0; }
 void __wrap_Mix_PauseMusic(){}
 void __wrap_Mix_ResumeMusic(){}
@@ -37,7 +38,7 @@ Mix_Music* Mix_LoadMUS(const char*){ return reinterpret_cast<Mix_Music*>(0x1); }
 int Mix_PlayChannel(int, Mix_Chunk*, int){ static int c=0; return c++; }
 int Mix_PlayMusic(Mix_Music*, int){ return 0; }
 int Mix_FadeInMusic(Mix_Music*, int, int){ return 0; }
-int Mix_HaltChannel(int){ return 0; }
+int Mix_HaltChannel(int c){ last_halt_channel = c; return 0; }
 int Mix_HaltMusic(){ return 0; }
 void Mix_PauseMusic(){}
 void Mix_ResumeMusic(){}
@@ -105,4 +106,17 @@ TEST(AudioEngine, StopAll){
     ASSERT_NO_FATAL_FAILURE(a.stopAll());
     a.shutdown();
     SUCCEED();
+}
+
+TEST(AudioEngine, StopSoundByName){
+    AudioEngine a; a.init();
+    int c1 = a.playSound("ding.wav");
+    int c2 = a.playSound("dong.wav");
+    last_halt_channel = -2;
+    a.stopSound("ding.wav");
+    EXPECT_EQ(last_halt_channel, c1);
+    last_halt_channel = -2;
+    a.stopSound("dong.wav");
+    EXPECT_EQ(last_halt_channel, c2);
+    a.shutdown();
 }
