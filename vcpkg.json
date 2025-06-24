@@ -6,7 +6,7 @@
     "sdl2",
 
     { "name": "sdl2-image", "platform": "!android" },
-    { "name": "sdl2-mixer" },
+    { "name": "sdl2-mixer", "default-features": false },
     { "name": "sdl2-ttf",   "platform": "!android" },
 
     { "name": "glew",       "platform": "!android" },
