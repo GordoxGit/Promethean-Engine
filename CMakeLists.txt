@@ -222,6 +222,7 @@ if(PROMETHEAN_BUILD_TESTS AND NOT ANDROID)
     enable_testing()
 
     add_executable(engine_tests
+        tests/TestMain.cpp
         tests/EngineTests.cpp
         tests/core/TestLogSystem.cpp
         tests/core/TestEventBus.cpp
@@ -234,32 +235,13 @@ if(PROMETHEAN_BUILD_TESTS AND NOT ANDROID)
         tests/ui/TestLayout.cpp
         tests/ui/TestSlider.cpp
         tests/audio/TestAudioEngine.cpp
+        tests/mocks/SDL_mixer_stubs.cpp
     )
 
     target_link_libraries(engine_tests
-        PRIVATE Promethean::Engine GTest::gtest_main
+        PRIVATE Promethean::Engine GTest::gtest
     )
     target_compile_definitions(engine_tests PRIVATE TESTING)
-
-    # === Wrappers Mix_* pour Linux uniquement ===
-    if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
-        set(WRAPPED_FUNCS
-            Mix_OpenAudio Mix_CloseAudio Mix_AllocateChannels
-            Mix_LoadWAV   Mix_LoadMUS
-            Mix_PlayChannel Mix_PlayMusic Mix_FadeInMusic
-            Mix_HaltChannel Mix_HaltMusic
-            Mix_PauseMusic Mix_ResumeMusic
-            Mix_Volume Mix_VolumeMusic
-            Mix_FreeChunk Mix_FreeMusic Mix_GetError
-        )
-        foreach(f ${WRAPPED_FUNCS})
-            target_link_options(engine_tests PRIVATE "-Wl,--wrap=${f}")
-        endforeach()
-        if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-            target_compile_options(engine_tests PRIVATE -fsanitize=address)
-            target_link_options(engine_tests PRIVATE -fsanitize=address)
-        endif()
-    endif()
 
     include(GoogleTest)
     gtest_discover_tests(engine_tests
