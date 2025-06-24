@@ -166,7 +166,17 @@ if(ANDROID)
     target_compile_definitions(engine PRIVATE PROMETHEAN_ANDROID GRAPHICS_API_GLES)
 
     find_package(SDL2_mixer CONFIG REQUIRED)
-    target_link_libraries(engine PUBLIC SDL2_mixer::SDL2_mixer)
+
+    # Gérer explicitement les cibles SDL2_mixer statiques ou partagées
+    if(TARGET SDL2_mixer::SDL2_mixer)
+        set(PROM_SDL2_MIXER_TARGET SDL2_mixer::SDL2_mixer)
+    elseif(TARGET SDL2_mixer::SDL2_mixer-static)
+        set(PROM_SDL2_MIXER_TARGET SDL2_mixer::SDL2_mixer-static)
+    else()
+        message(FATAL_ERROR "Cible SDL2_mixer introuvable (ni SDL2_mixer::SDL2_mixer ni SDL2_mixer::SDL2_mixer-static)")
+    endif()
+
+    target_link_libraries(engine PUBLIC ${PROM_SDL2_MIXER_TARGET})
 
     target_link_libraries(engine PUBLIC
         android
