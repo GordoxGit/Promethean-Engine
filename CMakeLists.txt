@@ -221,6 +221,11 @@ if(PROMETHEAN_BUILD_TESTS AND NOT ANDROID)
     find_package(GTest CONFIG REQUIRED)
     enable_testing()
 
+    set(USE_SDL_STUBS OFF)
+    if(DEFINED ENV{CI_HEADLESS} AND NOT MSVC)
+        set(USE_SDL_STUBS ON)
+    endif()
+
     add_executable(engine_tests
         tests/TestMain.cpp
         tests/EngineTests.cpp
@@ -235,8 +240,12 @@ if(PROMETHEAN_BUILD_TESTS AND NOT ANDROID)
         tests/ui/TestLayout.cpp
         tests/ui/TestSlider.cpp
         tests/audio/TestAudioEngine.cpp
-        tests/mocks/SDL_mixer_stubs.cpp
     )
+
+    if(USE_SDL_STUBS)
+        target_sources(engine_tests PRIVATE tests/mocks/SDL_mixer_stubs.cpp)
+        target_compile_definitions(engine_tests PRIVATE USE_SDL_STUBS)
+    endif()
 
     target_link_libraries(engine_tests
         PRIVATE Promethean::Engine GTest::gtest

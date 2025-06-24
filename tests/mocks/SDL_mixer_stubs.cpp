@@ -3,11 +3,12 @@
 // Stubs for SDL_mixer functions used in tests. They avoid touching real audio
 // devices or files and provide deterministic behavior across platforms.
 
-extern "C" {
+extern "C" int stub_last_halt_channel = -2;
+
+namespace {
 
 static int dummy_channels = 8;
 static int last_channel = 0;
-int stub_last_halt_channel = -2;
 static int master_volume = MIX_MAX_VOLUME;
 static int music_volume = MIX_MAX_VOLUME;
 
@@ -54,4 +55,4 @@ void Mix_FreeMusic(Mix_Music*) {}
 
 const char* Mix_GetError() { return ""; }
 
-} // extern "C"
+} // namespace
