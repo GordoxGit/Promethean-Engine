@@ -63,7 +63,7 @@ TEST(AudioEngine, Init){
 }
 
 TEST(AudioEngine, PlaySound_ChannelsDifferent){
-    AudioEngine a; a.init();
+    AudioEngine a; ASSERT_TRUE(a.init());
     int c1 = a.playSound("beep.wav");
     int c2 = a.playSound("boop.wav");
     EXPECT_NE(c1, c2);
@@ -71,7 +71,7 @@ TEST(AudioEngine, PlaySound_ChannelsDifferent){
 }
 
 TEST(AudioEngine, MasterVolume){
-    AudioEngine a; a.init();
+    AudioEngine a; ASSERT_TRUE(a.init());
     a.setMasterVolume(0.5f);
     EXPECT_NEAR(Mix_Volume(-1,-1)/static_cast<float>(MIX_MAX_VOLUME),0.5f,0.01f);
     a.shutdown();
@@ -81,14 +81,14 @@ TEST(AudioEngine, NoFileWrites){
 #ifdef SKIP_NO_MIX_WRAP
     GTEST_SKIP() << "Wrap SDL_mixer non supporté sur cette plateforme.";
 #endif
-    AudioEngine a; a.init();
+    AudioEngine a; ASSERT_TRUE(a.init());
     a.playSound("x.wav");
     SUCCEED();
     a.shutdown();
 }
 
 TEST(AudioEngine, EventBusPublished){
-    AudioEngine a; a.init();
+    AudioEngine a; ASSERT_TRUE(a.init());
     int count=0;
     auto id = EventBus::Instance().Subscribe<AudioEvent>([&](const std::any&){ ++count; });
     a.playSound("foo.wav");
@@ -98,7 +98,7 @@ TEST(AudioEngine, EventBusPublished){
 }
 
 TEST(AudioEngine, StopAll){
-    AudioEngine a; a.init();
+    AudioEngine a; ASSERT_TRUE(a.init());
     a.playSound("s.wav");
     a.playMusic("m.ogg");
     std::this_thread::sleep_for(std::chrono::milliseconds(50));
@@ -109,7 +109,7 @@ TEST(AudioEngine, StopAll){
 }
 
 TEST(AudioEngine, StopSoundByName){
-    AudioEngine a; a.init();
+    AudioEngine a; ASSERT_TRUE(a.init());
     int c1 = a.playSound("ding.wav");
     int c2 = a.playSound("dong.wav");
     last_halt_channel = -2;

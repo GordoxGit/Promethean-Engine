@@ -37,6 +37,7 @@ void AudioEngine::shutdown()
 
 int AudioEngine::playSound(const std::string& name, float volume)
 {
+    if (!m_initialized) return -1;
     Mix_Chunk* chunk = nullptr;
     auto it = m_sounds.find(name);
     if(it == m_sounds.end())
@@ -75,6 +76,7 @@ int AudioEngine::playSound(const std::string& name, float volume)
 
 int AudioEngine::playMusic(const std::string& name, bool loop, float fadeInMs)
 {
+    if (!m_initialized) return -1;
     Mix_Music* music = nullptr;
     auto it = m_music.find(name);
     if(it == m_music.end())
@@ -142,16 +144,10 @@ void AudioEngine::stopAll()
 
     Mix_HaltMusic();
     Mix_HaltChannel(-1);
-    m_playingChannels.clear();
 
-    auto safeErase = [](auto& map, auto freeFn){
-        for (auto it = map.begin(); it != map.end(); ) {
-            if (it->second) freeFn(it->second.release());
-            it = map.erase(it);
-        }
-    };
-    safeErase(m_music,  Mix_FreeMusic);
-    safeErase(m_sounds, Mix_FreeChunk);
+    m_playingChannels.clear();
+    m_sounds.clear();
+    m_music.clear();
 
     EventBus::Instance().Publish(AudioEvent{AudioEvent::Type::StopAll, "", 0.f});
 }
