@@ -18,11 +18,15 @@ bool AudioEngine::init()
 
 void AudioEngine::shutdown()
 {
-    for(auto& [k,v] : m_sounds)
-        Mix_FreeChunk(v);
+    for (auto& [_, chunk] : m_sounds) {
+        Mix_Chunk* ptr = chunk.release();
+        if (ptr) Mix_FreeChunk(ptr);
+    }
     m_sounds.clear();
-    for(auto& [k,v] : m_music)
-        Mix_FreeMusic(v);
+    for (auto& [_, mus] : m_music) {
+        Mix_Music* ptr = mus.release();
+        if (ptr) Mix_FreeMusic(ptr);
+    }
     m_music.clear();
     Mix_CloseAudio();
 }
@@ -46,15 +50,13 @@ int AudioEngine::playSound(const std::string& name, float volume)
         }
         if(m_sounds.size() >= 32)
         {
-            auto first = m_sounds.begin();
-            Mix_FreeChunk(first->second);
-            m_sounds.erase(first);
+            m_sounds.erase(m_sounds.begin());
         }
-        m_sounds[name] = chunk;
+        m_sounds.emplace(name, ChunkPtr(chunk, Mix_FreeChunk));
     }
     else
     {
-        chunk = it->second;
+        chunk = it->second.get();
     }
 
     int channel = Mix_PlayChannel(-1, chunk, 0);
@@ -80,13 +82,15 @@ int AudioEngine::playMusic(const std::string& name, bool loop, float fadeInMs)
             return -1;
 #endif
         }
-        for(auto& [k,v] : m_music)
-            Mix_FreeMusic(v);
+        for (auto& [_, mus] : m_music) {
+            Mix_Music* ptr = mus.release();
+            if (ptr) Mix_FreeMusic(ptr);
+        }
         m_music.clear();
-        m_music[name] = music;
+        m_music.emplace(name, MusicPtr(music, Mix_FreeMusic));
     }
     else
-        music = it->second;
+        music = it->second.get();
 
     int loops = loop ? -1 : 1;
     int result = (fadeInMs > 0.f) ? Mix_FadeInMusic(music, loops, static_cast<int>(fadeInMs))
@@ -110,8 +114,22 @@ void AudioEngine::resumeMusic()
 
 void AudioEngine::stopAll()
 {
+    if (Mix_QuerySpec(nullptr, nullptr, nullptr) == 0) return;
+
     Mix_HaltChannel(-1);
     Mix_HaltMusic();
+
+    for (auto& [_, mus] : m_music) {
+        Mix_Music* ptr = mus.release();
+        if (ptr) Mix_FreeMusic(ptr);
+    }
+    for (auto& [_, chk] : m_sounds) {
+        Mix_Chunk* ptr = chk.release();
+        if (ptr) Mix_FreeChunk(ptr);
+    }
+    m_music.clear();
+    m_sounds.clear();
+
     EventBus::Instance().Publish(AudioEvent{AudioEvent::Type::StopAll, "", 0.f});
 }
 

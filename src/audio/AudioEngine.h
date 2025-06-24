@@ -29,8 +29,10 @@ public:
     float getMasterVolume() const;
 
 private:
-    std::unordered_map<std::string, Mix_Chunk*> m_sounds;
-    std::unordered_map<std::string, Mix_Music*> m_music;
+    using ChunkPtr = std::unique_ptr<Mix_Chunk, decltype(&Mix_FreeChunk)>;
+    using MusicPtr = std::unique_ptr<Mix_Music, decltype(&Mix_FreeMusic)>;
+    std::unordered_map<std::string, ChunkPtr> m_sounds;
+    std::unordered_map<std::string, MusicPtr> m_music;
     float m_masterVolume = 1.0f;
 };
 
