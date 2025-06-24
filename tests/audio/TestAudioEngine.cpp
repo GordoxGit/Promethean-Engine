@@ -11,6 +11,8 @@ extern "C" int stub_last_halt_channel;
 
 using namespace Promethean;
 
+constexpr auto kAudioPath = "assets/audio/";
+
 TEST(AudioEngine, Init){
     AudioEngine a; 
     EXPECT_TRUE(a.init());
@@ -20,8 +22,8 @@ TEST(AudioEngine, Init){
 
 TEST(AudioEngine, PlaySound_ChannelsDifferent){
     AudioEngine a; ASSERT_TRUE(a.init());
-    int c1 = a.playSound("beep.wav");
-    int c2 = a.playSound("boop.wav");
+    int c1 = a.playSound(kAudioPath + "beep.wav");
+    int c2 = a.playSound(kAudioPath + "boop.wav");
     EXPECT_NE(c1, c2);
     a.shutdown();
 }
@@ -35,7 +37,7 @@ TEST(AudioEngine, MasterVolume){
 
 TEST(AudioEngine, NoFileWrites){
     AudioEngine a; ASSERT_TRUE(a.init());
-    a.playSound("x.wav");
+    a.playSound(kAudioPath + "x.wav");
     SUCCEED();
     a.shutdown();
 }
@@ -44,7 +46,7 @@ TEST(AudioEngine, EventBusPublished){
     AudioEngine a; ASSERT_TRUE(a.init());
     int count=0;
     auto id = EventBus::Instance().Subscribe<AudioEvent>([&](const std::any&){ ++count; });
-    a.playSound("foo.wav");
+    a.playSound(kAudioPath + "foo.wav");
     EventBus::Instance().Unsubscribe(id);
     a.shutdown();
     EXPECT_EQ(count,1);
@@ -52,8 +54,8 @@ TEST(AudioEngine, EventBusPublished){
 
 TEST(AudioEngine, StopAll){
     AudioEngine a; ASSERT_TRUE(a.init());
-    a.playSound("s.wav");
-    a.playMusic("m.ogg");
+    a.playSound(kAudioPath + "s.wav");
+    a.playMusic(kAudioPath + "m.ogg");
     std::this_thread::sleep_for(std::chrono::milliseconds(50));
     ASSERT_NO_FATAL_FAILURE(a.stopAll());
     ASSERT_NO_FATAL_FAILURE(a.stopAll());
@@ -64,13 +66,13 @@ TEST(AudioEngine, StopAll){
 #ifdef USE_SDL_STUBS
 TEST(AudioEngine, StopSoundByName){
     AudioEngine a; ASSERT_TRUE(a.init());
-    int c1 = a.playSound("ding.wav");
-    int c2 = a.playSound("dong.wav");
+    int c1 = a.playSound(kAudioPath + "ding.wav");
+    int c2 = a.playSound(kAudioPath + "dong.wav");
     stub_last_halt_channel = -2;
-    a.stopSound("ding.wav");
+    a.stopSound(kAudioPath + "ding.wav");
     EXPECT_EQ(stub_last_halt_channel, c1);
     stub_last_halt_channel = -2;
-    a.stopSound("dong.wav");
+    a.stopSound(kAudioPath + "dong.wav");
     EXPECT_EQ(stub_last_halt_channel, c2);
     a.shutdown();
 }
