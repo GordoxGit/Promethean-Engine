@@ -45,13 +45,8 @@ int AudioEngine::playSound(const std::string& name, float volume)
         chunk = Mix_LoadWAV(name.c_str());
         if(!chunk)
         {
-#ifdef TESTING
-            static Uint8 dummy[4] = {0};
-            chunk = Mix_QuickLoad_RAW(dummy, sizeof(dummy));
-#else
             LogSystem::Instance().Warn("Failed to load sound {}: {}", name, Mix_GetError());
             return -1;
-#endif
         }
         if(m_sounds.size() >= 32)
         {
@@ -84,12 +79,8 @@ int AudioEngine::playMusic(const std::string& name, bool loop, float fadeInMs)
         music = Mix_LoadMUS(name.c_str());
         if(!music)
         {
-#ifdef TESTING
-            music = reinterpret_cast<Mix_Music*>(1);
-#else
             LogSystem::Instance().Warn("Failed to load music {}: {}", name, Mix_GetError());
             return -1;
-#endif
         }
         for (auto& [_, mus] : m_music) {
             Mix_Music* ptr = mus.release();
