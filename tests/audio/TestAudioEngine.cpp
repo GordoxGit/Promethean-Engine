@@ -2,6 +2,7 @@
 #include "core/EventBus.h"
 #include <gtest/gtest.h>
 #include <SDL_mixer.h>
+#include <string>
 #include <thread>
 #include <chrono>
 
@@ -11,7 +12,7 @@ extern "C" int stub_last_halt_channel;
 
 using namespace Promethean;
 
-constexpr auto kAudioPath = "assets/audio/";
+static const std::string kAudioPath = "assets/audio/";
 
 TEST(AudioEngine, Init){
     AudioEngine a; 
