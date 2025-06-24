@@ -98,7 +98,8 @@ TEST(AudioEngine, StopAll){
     AudioEngine a; a.init();
     a.playSound("s.wav");
     a.playMusic("m.ogg");
-    a.stopAll();
+    ASSERT_NO_FATAL_FAILURE(a.stopAll());
+    ASSERT_NO_FATAL_FAILURE(a.stopAll());
     a.shutdown();
     SUCCEED();
 }
