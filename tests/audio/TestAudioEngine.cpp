@@ -5,7 +5,9 @@
 #include <thread>
 #include <chrono>
 
+#ifdef USE_SDL_STUBS
 extern "C" int stub_last_halt_channel;
+#endif
 
 using namespace Promethean;
 
@@ -59,6 +61,7 @@ TEST(AudioEngine, StopAll){
     SUCCEED();
 }
 
+#ifdef USE_SDL_STUBS
 TEST(AudioEngine, StopSoundByName){
     AudioEngine a; ASSERT_TRUE(a.init());
     int c1 = a.playSound("ding.wav");
@@ -71,3 +74,4 @@ TEST(AudioEngine, StopSoundByName){
     EXPECT_EQ(stub_last_halt_channel, c2);
     a.shutdown();
 }
+#endif
