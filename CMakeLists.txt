@@ -242,6 +242,11 @@ if(PROMETHEAN_BUILD_TESTS AND NOT ANDROID)
         tests/audio/TestAudioEngine.cpp
     )
 
+    file(GLOB TEST_AUDIO_FILES
+        ${CMAKE_SOURCE_DIR}/tests/assets/audio/*)
+    file(COPY ${TEST_AUDIO_FILES}
+        DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/assets/audio)
+
     if(USE_SDL_STUBS)
         target_sources(engine_tests PRIVATE tests/mocks/SDL_mixer_stubs.cpp)
         target_compile_definitions(engine_tests PRIVATE USE_SDL_STUBS)
