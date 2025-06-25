@@ -229,3 +229,9 @@ Voir le fichier `LICENSE`.
 ```bash
 cmake -B build && cmake --build build
 ```
+
+To load a Tiled map at runtime:
+
+```bash
+./promethean --map=path/to/level.tmx
+```

@@ -140,4 +140,10 @@ std::shared_ptr<Font> AssetManager::LoadFont(const std::string& path, int size)
 #endif
 }
 
+std::shared_ptr<Texture> AssetManager::MissingTexture()
+{
+    static std::shared_ptr<Texture> placeholder = std::make_shared<Texture>(Texture{nullptr});
+    return placeholder;
+}
+
 } // namespace Promethean

@@ -58,6 +58,7 @@ find_package(SDL2          CONFIG REQUIRED)          # toujours
 find_package(spdlog        CONFIG REQUIRED)
 find_package(glm           CONFIG REQUIRED)
 find_package(nlohmann_json CONFIG REQUIRED)
+find_package(tinyxml2      CONFIG REQUIRED)
 
 if(NOT ANDROID)                                     # extensions SDL2 uniquement desktop
     find_package(SDL2_image CONFIG REQUIRED)
@@ -79,6 +80,7 @@ add_library(engine
     # ── Renderer ────────────────────────────────────────────────────
     src/renderer/BatchRenderer.cpp     src/renderer/BatchRenderer.h
     src/renderer/RenderEvents.h
+    src/renderer/TileMapRenderer.cpp   src/renderer/TileMapRenderer.h
     # ── Input ---------------------------------------------------------------
     src/input/ActionMapper.cpp         src/input/ActionMapper.h
     src/input/InputManager.cpp         src/input/InputManager.h
@@ -102,6 +104,7 @@ add_library(engine
     src/ui/Widget.h
     # ── Assets ---------------------------------------------------------------
     src/assets/AssetManager.cpp        src/assets/AssetManager.h
+    src/assets/TileMap.cpp             src/assets/TileMap.h
     # ── Settings -------------------------------------------------------------
     src/core/SettingsManager.cpp       src/core/SettingsManager.h
 )
@@ -156,6 +159,7 @@ target_link_libraries(engine
         $<$<BOOL:${PROMETHEAN_WITH_IMGUI}>:imgui>
         spdlog::spdlog
         glm::glm
+        tinyxml2::tinyxml2
         $<$<NOT:$<BOOL:${ANDROID}>>:                 # ⇐ extensions uniquement desktop
             $<$<TARGET_EXISTS:SDL2_image::SDL2_image>:SDL2_image::SDL2_image>
             $<$<NOT:$<TARGET_EXISTS:SDL2_image::SDL2_image>>:SDL2_image::SDL2_image-static>
@@ -264,6 +268,7 @@ if(PROMETHEAN_BUILD_TESTS AND NOT ANDROID)
         tests/renderer/TestBatchRenderer.cpp
         tests/debug/TestDebugOverlay.cpp
         tests/assets/TestAssetManager.cpp
+        tests/assets/TestTileMap.cpp
         tests/input/TestActionMapper.cpp
         tests/ui/TestButton.cpp
         tests/ui/TestLayout.cpp

@@ -28,6 +28,8 @@ public:
     /** Load a font at the given size. */
     std::shared_ptr<Font>    LoadFont   (const std::string& path, int size);
 
+    static std::shared_ptr<Texture> MissingTexture();
+
 private:
     struct Impl;
     std::unique_ptr<Impl> m_impl; ///< Pimpl hiding LRU implementation.
