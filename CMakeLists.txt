@@ -23,7 +23,7 @@ endif()
 # ====================================================================
 #                       Standard / flags C++
 # ====================================================================
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
@@ -77,6 +77,8 @@ add_library(engine
     src/core/EventBus.cpp              src/core/EventBus.h
     src/core/StateStack.cpp            src/core/StateStack.h
     src/core/State.h
+    # ── ECS ---------------------------------------------------------------
+    src/ecs/ecs.h
     # ── Renderer ────────────────────────────────────────────────────
     src/renderer/BatchRenderer.cpp     src/renderer/BatchRenderer.h
     src/renderer/RenderEvents.h
@@ -174,7 +176,7 @@ target_link_libraries(engine
         >
 )
 
-target_compile_features(engine PUBLIC cxx_std_17)
+target_compile_features(engine PUBLIC cxx_std_20)
 
 if(MSVC)
     target_compile_options(engine PRIVATE /W4)
@@ -282,6 +284,7 @@ if(PROMETHEAN_BUILD_TESTS AND NOT ANDROID)
         tests/ui/TestSlider.cpp
         tests/audio/TestAudioEngine.cpp
         tests/audio/TestAudioBus.cpp
+        tests/ecs/TestECS.cpp
     )
 
     file(GLOB TEST_AUDIO_FILES
