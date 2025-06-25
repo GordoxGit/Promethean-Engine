@@ -83,6 +83,7 @@ add_library(engine
     src/debug/DebugPrimitives.h
     # ── Audio ---------------------------------------------------------------
     src/audio/AudioEngine.cpp          src/audio/AudioEngine.h
+    src/audio/AudioSettings.cpp        src/audio/AudioSettings.h
     src/audio/Sound.cpp                src/audio/Sound.h
     src/audio/Music.cpp                src/audio/Music.h
     # ── UI -------------------------------------------------------------------
@@ -240,6 +241,7 @@ if(PROMETHEAN_BUILD_TESTS AND NOT ANDROID)
         tests/ui/TestLayout.cpp
         tests/ui/TestSlider.cpp
         tests/audio/TestAudioEngine.cpp
+        tests/audio/TestAudioBus.cpp
     )
 
     file(GLOB TEST_AUDIO_FILES
