@@ -2,21 +2,35 @@
   "name": "promethean-engine",
   "version-string": "0.1.0",
   "description": "Minimal 2D engine using SDL2",
+  "builtin-baseline": "f5ca1a1e2b8f6bc59f2a5b4c4b8ab0d3e7f2d5a0",
   "dependencies": [
     "sdl2",
-
-    { "name": "sdl2-image", "platform": "!android" },
-    { "name": "sdl2-mixer", "default-features": false },
-    { "name": "sdl2-ttf",   "platform": "!android" },
-
-    { "name": "glew",       "platform": "!android" },
-
+    {
+      "name": "sdl2-image",
+      "platform": "!android"
+    },
+    {
+      "name": "sdl2-mixer",
+      "default-features": false
+    },
+    {
+      "name": "sdl2-ttf",
+      "platform": "!android"
+    },
+    {
+      "name": "glew",
+      "platform": "!android"
+    },
     "spdlog",
-    { "name": "nlohmann-json", "version>=" : "3.11.3" },
+    {
+      "name": "nlohmann-json",
+      "version>=": "3.11.3"
+    },
     "glm",
-
     "tinyxml2",
-
-    { "name": "gtest", "platform": "!android" }
+    {
+      "name": "gtest",
+      "platform": "!android"
+    }
   ]
 }
