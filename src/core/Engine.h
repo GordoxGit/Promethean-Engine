@@ -48,6 +48,7 @@ private:
     };
 
     bool m_initialized{false};
+    bool m_headless{false};
     std::unique_ptr<SDL_Window, SDLWindowDeleter> m_window;
     SDL_GLContext m_glContext{nullptr};
     BatchRenderer m_renderer;
