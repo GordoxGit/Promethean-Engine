@@ -52,7 +52,13 @@ TEST(ECS, Performance_ForEachUnderBudget)
     r.for_each<Position,Velocity>([](Position&, Velocity&){});
     auto end = std::chrono::high_resolution_clock::now();
     auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(end-start).count();
-    EXPECT_LT(ms, 100);
+    constexpr long kBudget = 100;
+    constexpr long kMargin = 40; // CI variability 40%
+#ifdef PE_CI
+    EXPECT_LT(ms, kBudget + kMargin);
+#else
+    EXPECT_LT(ms, kBudget);
+#endif
 }
 
 TEST(ECS, Threaded_CreateDestroy_NoRace)

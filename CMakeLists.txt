@@ -8,6 +8,7 @@ project(PrometheanEngine
     DESCRIPTION "Minimal 2D engine using SDL2"
     LANGUAGES   CXX
 )
+include(cmake/Options.cmake)
 
 # ====================================================================
 #                  Choix de la pile graphique
