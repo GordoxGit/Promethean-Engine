@@ -16,6 +16,8 @@
     #include <GL/glew.h>
 #endif
 
+static int s_drawCalls = 0;
+
 #ifndef GLSL_VERSION
 #   ifdef GRAPHICS_API_GLES
 #       define GLSL_VERSION "#version 300 es\n"
@@ -235,6 +237,7 @@ void BatchRenderer::Begin(int screenWidth, int screenHeight)
         return;
     }
 
+    s_drawCalls = 0;
     GL_CHECK(glViewport(0, 0, screenWidth, screenHeight));
     glm::mat4 proj = glm::ortho(0.f, static_cast<float>(screenWidth),
                                 static_cast<float>(screenHeight), 0.f);
@@ -289,6 +292,7 @@ void BatchRenderer::DrawQuad(const glm::vec2& pos, const glm::vec2& size,
     GL_CHECK(glUseProgram(m_shader));
     GL_CHECK(glBindVertexArray(m_vao));
     GL_CHECK(glDrawArrays(GL_TRIANGLES, 0, 6));
+    ++s_drawCalls;
 }
 
 void BatchRenderer::DrawLine(const glm::vec2& a, const glm::vec2& b,
@@ -316,6 +320,7 @@ void BatchRenderer::DrawLine(const glm::vec2& a, const glm::vec2& b,
     GL_CHECK(glUseProgram(m_shader));
     GL_CHECK(glBindVertexArray(m_vao));
     GL_CHECK(glDrawArrays(GL_LINES, 0, 2));
+    ++s_drawCalls;
 }
 
 void BatchRenderer::Flush()
@@ -333,6 +338,16 @@ void BatchRenderer::Flush()
 void BatchRenderer::End()
 {
     Flush();
+}
+
+int BatchRenderer::GetDrawCallCount()
+{
+    return s_drawCalls;
+}
+
+void BatchRenderer::ResetStats()
+{
+    s_drawCalls = 0;
 }
 
 #ifdef TESTING

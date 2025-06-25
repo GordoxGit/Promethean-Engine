@@ -89,7 +89,7 @@ add_library(engine
     # ── Debug ---------------------------------------------------------------
     src/debug/DebugOverlay.cpp         src/debug/DebugOverlay.h
     src/debug/DebugPrimitives.h
-    src/debug/ImGuiLayer.cpp           src/debug/ImGuiLayer.h
+    src/debug/RuntimeOverlay.cpp       src/debug/RuntimeOverlay.h
     # ── Audio ---------------------------------------------------------------
     src/audio/AudioEngine.cpp          src/audio/AudioEngine.h
     src/audio/AudioSettings.cpp        src/audio/AudioSettings.h
@@ -269,6 +269,7 @@ if(PROMETHEAN_BUILD_TESTS AND NOT ANDROID)
         tests/core/TestStateStack.cpp
         tests/renderer/TestBatchRenderer.cpp
         tests/debug/TestDebugOverlay.cpp
+        tests/debug/TestRuntimeOverlay.cpp
         tests/assets/TestAssetManager.cpp
         tests/assets/TestTileMap.cpp
         tests/physics/TestCollisionLayer.cpp
