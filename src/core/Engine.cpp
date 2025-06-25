@@ -42,6 +42,19 @@ bool Engine::Initialize() {
     if (m_initialized)
         return true;
 
+    // When running unit tests or in CI, the engine can be initialized without
+    // any graphical output. In that case we avoid creating a window or an OpenGL
+    // context entirely.
+#ifdef HEADLESS_GL
+    if (SDL_Init(SDL_INIT_TIMER | SDL_INIT_AUDIO) != 0) {
+        spdlog::error("SDL_Init failed: {}", SDL_GetError());
+        return false;
+    }
+    m_headless = true;
+    m_initialized = true;
+    spdlog::info("Engine initialized in headless mode");
+    return true;
+#else
     // Configure SDL for headless environments (Linux CI/CD)
 #if defined(__linux__) && !defined(PROMETHEAN_ANDROID)
     if (!std::getenv("DISPLAY")) {
@@ -102,6 +115,7 @@ bool Engine::Initialize() {
 
     m_initialized = true;
     return true;
+#endif // HEADLESS_GL
 #endif // PROMETHEAN_ANDROID_CI
 }
 
