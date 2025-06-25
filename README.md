@@ -58,6 +58,24 @@ cmake --build . --parallel
 ctest --output-on-failure
 ```
 
+## 📦 Building with vcpkg
+
+This project uses **vcpkg** to manage its third-party libraries. The manifest
+specifies a fixed baseline commit so that dependency versions remain
+deterministic. Ensure your clone of vcpkg is able to access this baseline:
+
+```json
+"builtin-baseline": "f5ca1a1e2b8f6bc59f2a5b4c4b8ab0d3e7f2d5a0"
+```
+
+After bootstrapping vcpkg, install the dependencies from the manifest:
+
+```bash
+git clone https://github.com/Microsoft/vcpkg.git
+./vcpkg/bootstrap-vcpkg.sh
+./vcpkg/vcpkg install --x-manifest-root=.
+```
+
 ---
 
 ## 🧪 Tests & CI
