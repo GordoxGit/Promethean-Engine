@@ -107,6 +107,8 @@ add_library(engine
     src/assets/TileMap.cpp             src/assets/TileMap.h
     # ── Physics --------------------------------------------------------------
     src/physics/CollisionLayer.cpp     src/physics/CollisionLayer.h
+    # ── AI -------------------------------------------------------------------
+    src/ai/Pathfinder.cpp              src/ai/Pathfinder.h
     # ── Settings -------------------------------------------------------------
     src/core/SettingsManager.cpp       src/core/SettingsManager.h
 )
@@ -273,6 +275,7 @@ if(PROMETHEAN_BUILD_TESTS AND NOT ANDROID)
         tests/assets/TestAssetManager.cpp
         tests/assets/TestTileMap.cpp
         tests/physics/TestCollisionLayer.cpp
+        tests/ai/TestPathfinder.cpp
         tests/input/TestActionMapper.cpp
         tests/ui/TestButton.cpp
         tests/ui/TestLayout.cpp

@@ -12,6 +12,9 @@ std::optional<CollisionError> CollisionLayer::Build(const TileMap& map)
 {
     m_colliders.clear();
     m_hash.clear();
+    m_width  = map.mapSize.x;
+    m_height = map.mapSize.y;
+    m_walkable.assign(static_cast<size_t>(m_width * m_height), 1);
     const TileMap::ObjectGroup* group = nullptr;
     for(const auto& g : map.objectGroups)
         if(g.name == "collision") { group = &g; break; }
@@ -28,6 +31,13 @@ std::optional<CollisionError> CollisionLayer::Build(const TileMap& map)
         c.max = glm::vec2(obj.pos + obj.size);
         size_t index = m_colliders.size();
         m_colliders.push_back(c);
+
+        glm::ivec2 start = obj.pos / map.tileW;
+        glm::ivec2 end   = (obj.pos + obj.size - glm::ivec2(1)) / map.tileW;
+        for(int y = start.y; y <= end.y && y < m_height; ++y)
+            for(int x = start.x; x <= end.x && x < m_width; ++x)
+                if(x >= 0 && y >= 0)
+                    m_walkable[y * m_width + x] = 0;
 
         int x0 = static_cast<int>(std::floor(c.min.x / CELL_SIZE));
         int y0 = static_cast<int>(std::floor(c.min.y / CELL_SIZE));
@@ -61,6 +71,14 @@ std::vector<AABBCollider> CollisionLayer::Query(const glm::vec2& p) const
         }
     }
     return result;
+}
+
+bool CollisionLayer::IsWalkable(const glm::ivec2& cell) const
+{
+    if(cell.x < 0 || cell.y < 0 || cell.x >= m_width || cell.y >= m_height)
+        return false;
+    size_t idx = static_cast<size_t>(cell.y * m_width + cell.x);
+    return m_walkable[idx] != 0;
 }
 
 } // namespace Promethean
