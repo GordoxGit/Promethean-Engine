@@ -4,6 +4,8 @@
 // devices or files and provide deterministic behavior across platforms.
 
 extern "C" int stub_last_halt_channel = -2;
+extern "C" int stub_fadeout_music_calls = 0;
+extern "C" int stub_fadein_music_ms = 0;
 
 namespace {
 
@@ -37,7 +39,12 @@ extern "C" Mix_Music* Mix_LoadMUS(const char*) {
 
 extern "C" int Mix_PlayChannel(int, Mix_Chunk*, int) { return last_channel++; }
 extern "C" int Mix_PlayMusic(Mix_Music*, int) { return 0; }
-extern "C" int Mix_FadeInMusic(Mix_Music*, int, int) { return 0; }
+extern "C" int Mix_FadeInMusic(Mix_Music*, int, int ms) { stub_fadein_music_ms = ms; return 0; }
+static void (*hook_finished)(void) = nullptr;
+extern "C" void Mix_HookMusicFinished(void (*cb)(void)) { hook_finished = cb; }
+extern "C" int Mix_FadeOutMusic(int) { ++stub_fadeout_music_calls; if(hook_finished) hook_finished(); return 1; }
+extern "C" int Mix_FadeOutChannel(int, int) { return 0; }
+extern "C" int Mix_FadingMusic() { return MIX_NO_FADING; }
 
 extern "C" int Mix_HaltChannel(int c) {
     stub_last_halt_channel = c;

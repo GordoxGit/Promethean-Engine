@@ -14,6 +14,14 @@ struct AudioEvent {
     float       volume;
 };
 
+/** Event published when a fade starts. */
+struct AudioFadeStartedEvent {
+    int durationMs;
+};
+
+/** Event published when a fade operation completes. */
+struct AudioFadeCompletedEvent {};
+
 class AudioEngine {
 public:
     bool  init();
@@ -21,9 +29,11 @@ public:
 
     int   playSound(const std::string& name, float volume = 1.0f);
     int   playMusic(const std::string& name, bool loop = true, float fadeInMs = 0.0f);
+    bool  playMusicCrossFade(const std::string& path, int ms = 1000, bool loop = true);
     void  pauseMusic();
     void  resumeMusic();
     void  stopSound(const std::string& name);
+    bool  fadeOutAll(int ms = 500);
     void  stopAll();
 
     void  setMasterVolume(float volume);
@@ -37,6 +47,13 @@ private:
     std::unordered_map<int, std::string>       m_playingChannels;
     float m_masterVolume = 1.0f;
     bool  m_initialized  = false;
+
+    std::string m_pendingMusic;
+    bool        m_pendingLoop{true};
+    int         m_pendingFadeMs{0};
+
+    static AudioEngine* s_instance;
+    static void MusicFinishedHook();
 };
 
 }
