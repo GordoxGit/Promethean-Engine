@@ -34,6 +34,7 @@ struct BusState {
 
 class AudioEngine {
 public:
+    static AudioEngine& Instance();
     bool  init();
     void  shutdown();
 
