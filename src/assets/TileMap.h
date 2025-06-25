@@ -28,8 +28,18 @@ struct TileMap {
     glm::ivec2 mapSize{};
     int tileW{};
     int tileH{};
-    std::vector<TilesetInfo> tilesets;
-    std::vector<TileMapLayer> layers;
+    std::vector<TilesetInfo>   tilesets;
+    std::vector<TileMapLayer>  layers;
+    struct MapObject {
+        std::string name;
+        glm::ivec2  pos{};
+        glm::ivec2  size{};
+    };
+    struct ObjectGroup {
+        std::string name;
+        std::vector<MapObject> objects;
+    };
+    std::vector<ObjectGroup> objectGroups;
 };
 
 std::shared_ptr<TileMap> LoadTileMap(const std::string& path);

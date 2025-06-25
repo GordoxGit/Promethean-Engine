@@ -112,6 +112,23 @@ std::shared_ptr<TileMap> LoadTileMap(const std::string& path)
         map->layers.push_back(std::move(layer));
     }
 
+    for(auto ogEl = mapEl->FirstChildElement("objectgroup"); ogEl; ogEl = ogEl->NextSiblingElement("objectgroup"))
+    {
+        TileMap::ObjectGroup group{};
+        if(const char* name = ogEl->Attribute("name")) group.name = name;
+        for(auto objEl = ogEl->FirstChildElement("object"); objEl; objEl = objEl->NextSiblingElement("object"))
+        {
+            TileMap::MapObject obj{};
+            if(const char* oname = objEl->Attribute("name")) obj.name = oname;
+            objEl->QueryIntAttribute("x", &obj.pos.x);
+            objEl->QueryIntAttribute("y", &obj.pos.y);
+            objEl->QueryIntAttribute("width", &obj.size.x);
+            objEl->QueryIntAttribute("height", &obj.size.y);
+            group.objects.push_back(obj);
+        }
+        map->objectGroups.push_back(std::move(group));
+    }
+
     return map;
 }
 
