@@ -110,12 +110,14 @@ jobs:
             cmake -B build -G "Visual Studio 17 2022" -A x64 \
                   -DCMAKE_TOOLCHAIN_FILE="$TOOLCHAIN_FILE" \
                   -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
-                  -DVCPKG_INSTALLED_DIR="${{ github.workspace }}/vcpkg_installed"
+                  -DVCPKG_INSTALLED_DIR="${{ github.workspace }}/vcpkg_installed" \
+                  -DPE_CI=ON
           else
             cmake -B build -G Ninja \
                   -DCMAKE_TOOLCHAIN_FILE="$TOOLCHAIN_FILE" \
                   -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
-                  -DVCPKG_INSTALLED_DIR="${{ github.workspace }}/vcpkg_installed"
+                  -DVCPKG_INSTALLED_DIR="${{ github.workspace }}/vcpkg_installed" \
+                  -DPE_CI=ON
           fi
         shell: bash
 
@@ -223,7 +225,8 @@ jobs:
             -DANDROID_PLATFORM=android-21 \
             -DANDROID_STL=c++_shared \
             -DPROMETHEAN_CI_ANDROID=ON \
-            -DPROMETHEAN_BUILD_EXAMPLES=OFF
+            -DPROMETHEAN_BUILD_EXAMPLES=OFF \
+            -DPE_CI=ON
 
       - name: Build Android
         run: cmake --build build-android --config ${{ matrix.build_type }} --parallel

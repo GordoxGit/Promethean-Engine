@@ -48,7 +48,7 @@ sudo apt update && sudo apt install -y \
   libsdl2-mixer-dev \
   libgl1-mesa-dev \
   libsqlite3-dev \
-  libnlohmann-json-dev \
+  libnlohmann-json-dev (>=3.11.3) \
   lcov
 
 mkdir -p build && cd build
@@ -228,6 +228,12 @@ Voir le fichier `LICENSE`.
 ## Build (quick)
 ```bash
 cmake -B build && cmake --build build
+```
+
+CI build pipeline uses the optional `PE_CI` flag:
+
+```bash
+cmake -B build -DPE_CI=ON && cmake --build build
 ```
 
 To load a Tiled map at runtime:

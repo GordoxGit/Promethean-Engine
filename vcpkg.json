@@ -12,7 +12,7 @@
     { "name": "glew",       "platform": "!android" },
 
     "spdlog",
-    "nlohmann-json",
+    { "name": "nlohmann-json", "version>=" : "3.11.3" },
     "glm",
 
     "tinyxml2",
