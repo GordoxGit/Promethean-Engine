@@ -163,7 +163,7 @@ void Engine::Run()
         return;
     m_audioEngine.init();
     SettingsManager::Instance().load(".promethean/config.json");
-    m_imgui.init(m_window.get(), m_glContext);
+    pe::debug::Init();
 
     bool running = true;
     Uint32 last = SDL_GetTicks();
@@ -177,10 +177,9 @@ void Engine::Run()
                 running = false;
             else if (ev.type == SDL_KEYDOWN && ev.key.keysym.sym == SDLK_ESCAPE)
                 running = false;
-            else if (ev.type == SDL_KEYDOWN && ev.key.keysym.sym == SDLK_F9)
-                m_imgui.showAudioWindow = !m_imgui.showAudioWindow;
-
-            m_imgui.handleEvent(ev);
+            else if (ev.type == SDL_KEYDOWN && ev.key.keysym.sym == SDLK_F9) {
+                // legacy key, kept for compatibility
+            }
 
             m_states.HandleEvent(ev);
         }
@@ -192,11 +191,10 @@ void Engine::Run()
         m_states.Update(dt);
         m_states.ApplyRequests();
 
-        m_imgui.begin();
         m_renderer.Begin(1280, 720);
         m_states.Render(m_renderer);
         m_renderer.End();
-        m_imgui.end();
+        pe::debug::RenderOverlay();
         SDL_GL_SwapWindow(m_window.get());
 
         SDL_Delay(1);
@@ -206,6 +204,7 @@ void Engine::Run()
 
     SettingsManager::Instance().save();
 
+    pe::debug::Shutdown();
     m_renderer.Shutdown();
 #endif
 }

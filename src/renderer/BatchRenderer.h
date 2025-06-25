@@ -61,6 +61,10 @@ public:
     /** Actuellement équivalent à Flush(). */
     void End();
 
+    /** Current frame draw call count. */
+    static int GetDrawCallCount();
+    static void ResetStats();
+
 private:
     uint32_t m_vao{0}, m_vbo{0}, m_shader{0};
     uint32_t m_boundTexture{0};
