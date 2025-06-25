@@ -7,6 +7,12 @@ namespace Promethean {
 
 AudioEngine* AudioEngine::s_instance = nullptr;
 
+AudioEngine& AudioEngine::Instance()
+{
+    static AudioEngine inst;
+    return inst;
+}
+
 void AudioEngine::MusicFinishedHook()
 {
     if(!s_instance) return;

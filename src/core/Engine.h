@@ -4,6 +4,8 @@
 #include <memory>
 #include "core/StateStack.h"
 #include "renderer/BatchRenderer.h"
+#include "debug/ImGuiLayer.h"
+#include "audio/AudioEngine.h"
 
 // Forward declarations pour éviter les dépendances cycliques
 struct SDL_Window;
@@ -47,7 +49,10 @@ private:
 
     bool m_initialized{false};
     std::unique_ptr<SDL_Window, SDLWindowDeleter> m_window;
+    SDL_GLContext m_glContext{nullptr};
     BatchRenderer m_renderer;
+    AudioEngine   m_audioEngine;
+    ImGuiLayer    m_imgui;
     StateStack    m_states;
 };
 

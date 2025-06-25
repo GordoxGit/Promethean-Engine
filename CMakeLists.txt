@@ -32,6 +32,11 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 option(PROMETHEAN_BUILD_TESTS    "Build unit tests"    ON)
 option(PROMETHEAN_BUILD_EXAMPLES "Build examples"      ON)
 option(PROMETHEAN_CI_ANDROID     "Android build running in CI" OFF)
+if(ANDROID)
+    option(PROMETHEAN_WITH_IMGUI "Build with ImGui" OFF)
+else()
+    option(PROMETHEAN_WITH_IMGUI "Build with ImGui" ON)
+endif()
 
 if(ANDROID AND PROMETHEAN_CI_ANDROID)
     set(PROMETHEAN_BUILD_TESTS OFF CACHE BOOL "Tests disabled on Android CI" FORCE)
@@ -60,6 +65,7 @@ if(NOT ANDROID)                                     # extensions SDL2 uniquement
     find_package(SDL2_ttf   CONFIG REQUIRED)
 endif()
 
+
 # ====================================================================
 #                         Bibliothèque moteur
 # ====================================================================
@@ -81,6 +87,7 @@ add_library(engine
     # ── Debug ---------------------------------------------------------------
     src/debug/DebugOverlay.cpp         src/debug/DebugOverlay.h
     src/debug/DebugPrimitives.h
+    src/debug/ImGuiLayer.cpp           src/debug/ImGuiLayer.h
     # ── Audio ---------------------------------------------------------------
     src/audio/AudioEngine.cpp          src/audio/AudioEngine.h
     src/audio/AudioSettings.cpp        src/audio/AudioSettings.h
@@ -95,6 +102,8 @@ add_library(engine
     src/ui/Widget.h
     # ── Assets ---------------------------------------------------------------
     src/assets/AssetManager.cpp        src/assets/AssetManager.h
+    # ── Settings -------------------------------------------------------------
+    src/core/SettingsManager.cpp       src/core/SettingsManager.h
 )
 add_library(Promethean::Engine ALIAS engine)
 
@@ -119,6 +128,23 @@ if(TARGET SDL2::SDL2main)                            # optionnel hors Linux
     set(PROM_SDL2MAIN_TARGET SDL2::SDL2main)
 endif()
 
+if(PROMETHEAN_WITH_IMGUI)
+    add_library(imgui
+        third_party/imgui/imgui.cpp
+        third_party/imgui/imgui_draw.cpp
+        third_party/imgui/imgui_tables.cpp
+        third_party/imgui/imgui_widgets.cpp
+        third_party/imgui/imgui_demo.cpp
+        third_party/imgui/backends/imgui_impl_sdl.cpp
+        third_party/imgui/backends/imgui_impl_opengl3.cpp
+    )
+    target_include_directories(imgui PUBLIC
+        third_party/imgui
+        third_party/imgui/backends
+    )
+    target_link_libraries(imgui PUBLIC ${PROM_GFX_LIB} ${PROM_SDL2_TARGET})
+endif()
+
 # --------------------------------------------------------------------
 # Liaison des bibliothèques du moteur
 # --------------------------------------------------------------------
@@ -127,6 +153,7 @@ target_link_libraries(engine
         ${PROM_SDL2MAIN_TARGET}
         ${PROM_SDL2_TARGET}
         ${PROM_GFX_LIB}
+        $<$<BOOL:${PROMETHEAN_WITH_IMGUI}>:imgui>
         spdlog::spdlog
         glm::glm
         $<$<NOT:$<BOOL:${ANDROID}>>:                 # ⇐ extensions uniquement desktop
@@ -151,6 +178,7 @@ endif()
 target_compile_definitions(engine PRIVATE
     $<$<CONFIG:Debug>:PROMETHEAN_DEBUG>
     $<$<CONFIG:Release>:PROMETHEAN_RELEASE>
+    $<$<BOOL:${PROMETHEAN_WITH_IMGUI}>:PROMETHEAN_WITH_IMGUI>
 )
 
 # --------------------------------------------------------------------

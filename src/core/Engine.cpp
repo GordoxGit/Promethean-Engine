@@ -2,6 +2,7 @@
 #include "core/StateStack.h"
 #include "core/State.h"
 #include "renderer/BatchRenderer.h"
+#include "core/SettingsManager.h"
 
 #include <cstdlib>
 
@@ -65,7 +66,7 @@ bool Engine::Initialize() {
     }
 
     // Create window with platform-specific settings
-    Uint32 windowFlags = SDL_WINDOW_SHOWN;
+    Uint32 windowFlags = SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL;
     
 #ifdef PROMETHEAN_ANDROID
     // Android-specific window configuration
@@ -78,6 +79,14 @@ bool Engine::Initialize() {
                                    1280,
                                    720,
                                    windowFlags));
+
+#ifndef HEADLESS_GL
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+    m_glContext = SDL_GL_CreateContext(m_window.get());
+    SDL_GL_MakeCurrent(m_window.get(), m_glContext);
+#endif
     
     if (!m_window) {
         spdlog::error("Failed to create window: {}", SDL_GetError());
@@ -109,6 +118,13 @@ void Engine::Shutdown() {
         spdlog::debug("Window destroyed");
     }
 
+#ifndef HEADLESS_GL
+    if(m_glContext) {
+        SDL_GL_DeleteContext(m_glContext);
+        m_glContext = nullptr;
+    }
+#endif
+
     SDL_Quit();
     spdlog::info("Engine shutdown complete");
     m_initialized = false;
@@ -131,6 +147,9 @@ void Engine::Run()
 
     if (!m_renderer.Init())
         return;
+    m_audioEngine.init();
+    SettingsManager::Instance().load(".promethean/config.json");
+    m_imgui.init(m_window.get(), m_glContext);
 
     bool running = true;
     Uint32 last = SDL_GetTicks();
@@ -144,6 +163,10 @@ void Engine::Run()
                 running = false;
             else if (ev.type == SDL_KEYDOWN && ev.key.keysym.sym == SDLK_ESCAPE)
                 running = false;
+            else if (ev.type == SDL_KEYDOWN && ev.key.keysym.sym == SDLK_F9)
+                m_imgui.showAudioWindow = !m_imgui.showAudioWindow;
+
+            m_imgui.handleEvent(ev);
 
             m_states.HandleEvent(ev);
         }
@@ -155,14 +178,19 @@ void Engine::Run()
         m_states.Update(dt);
         m_states.ApplyRequests();
 
+        m_imgui.begin();
         m_renderer.Begin(1280, 720);
         m_states.Render(m_renderer);
         m_renderer.End();
+        m_imgui.end();
+        SDL_GL_SwapWindow(m_window.get());
 
         SDL_Delay(1);
         if (m_states.Size() == 0)
             running = false;
     }
+
+    SettingsManager::Instance().save();
 
     m_renderer.Shutdown();
 #endif
