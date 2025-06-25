@@ -4,6 +4,24 @@
 
 namespace Promethean {
 
+AudioEngine* AudioEngine::s_instance = nullptr;
+
+void AudioEngine::MusicFinishedHook()
+{
+    if(!s_instance) return;
+    if(!s_instance->m_pendingMusic.empty()) {
+        auto path  = s_instance->m_pendingMusic;
+        bool loop  = s_instance->m_pendingLoop;
+        int  fade  = s_instance->m_pendingFadeMs;
+        s_instance->m_pendingMusic.clear();
+        s_instance->playMusic(path, loop, static_cast<float>(fade));
+        EventBus::Instance().Publish(AudioFadeCompletedEvent{});
+    } else {
+        s_instance->stopAll();
+        EventBus::Instance().Publish(AudioFadeCompletedEvent{});
+    }
+}
+
 bool AudioEngine::init()
 {
     if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 1024) != 0)
@@ -110,6 +128,39 @@ void AudioEngine::pauseMusic()
 void AudioEngine::resumeMusic()
 {
     Mix_ResumeMusic();
+}
+
+bool AudioEngine::fadeOutAll(int ms)
+{
+    if (!m_initialized) return false;
+
+    EventBus::Instance().Publish(AudioFadeStartedEvent{ms});
+
+    s_instance = this;
+    m_pendingMusic.clear();
+    Mix_HookMusicFinished(MusicFinishedHook);
+    Mix_FadeOutChannel(-1, ms);
+    Mix_FadeOutMusic(ms);
+    return true;
+}
+
+bool AudioEngine::playMusicCrossFade(const std::string& path, int ms, bool loop)
+{
+    if (!m_initialized) return false;
+
+    if (m_music.empty())
+    {
+        return playMusic(path, loop, static_cast<float>(ms)) == 0;
+    }
+
+    EventBus::Instance().Publish(AudioFadeStartedEvent{ms});
+    s_instance    = this;
+    m_pendingMusic = path;
+    m_pendingLoop  = loop;
+    m_pendingFadeMs = ms;
+    Mix_HookMusicFinished(MusicFinishedHook);
+    Mix_FadeOutMusic(ms);
+    return true;
 }
 
 void AudioEngine::stopSound(const std::string& name)

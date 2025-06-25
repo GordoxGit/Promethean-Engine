@@ -77,4 +77,30 @@ TEST(AudioEngine, StopSoundByName){
     EXPECT_EQ(stub_last_halt_channel, c2);
     a.shutdown();
 }
+
+TEST(AudioEngine, FadeOutAllEvents){
+    AudioEngine a; ASSERT_TRUE(a.init());
+    int started=0, completed=0;
+    auto s1 = EventBus::Instance().Subscribe<AudioFadeStartedEvent>([&](const std::any&){ ++started; });
+    auto s2 = EventBus::Instance().Subscribe<AudioFadeCompletedEvent>([&](const std::any&){ ++completed; });
+    ASSERT_TRUE(a.fadeOutAll(200));
+    EventBus::Instance().Unsubscribe(s1);
+    EventBus::Instance().Unsubscribe(s2);
+    a.shutdown();
+    EXPECT_EQ(started,1);
+    EXPECT_EQ(completed,1);
+}
+
+extern "C" int stub_fadeout_music_calls;
+extern "C" int stub_fadein_music_ms;
+
+TEST(AudioEngine, CrossFadeCallsSDL){
+    AudioEngine a; ASSERT_TRUE(a.init());
+    a.playMusic(kAudioPath + "beep.wav");
+    stub_fadeout_music_calls = 0; stub_fadein_music_ms = 0;
+    ASSERT_TRUE(a.playMusicCrossFade(kAudioPath + "boop.wav", 150));
+    a.shutdown();
+    EXPECT_EQ(stub_fadeout_music_calls,1);
+    EXPECT_EQ(stub_fadein_music_ms,150);
+}
 #endif
