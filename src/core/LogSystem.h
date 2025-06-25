@@ -24,13 +24,13 @@ public:
 
     /// Log helpers ----------------------------------------------------------
     template<class... Args>
-    void Debug (std::string_view fmt, Args&&... args);
+    void Debug (spdlog::string_view_t fmt, Args&&... args);
     template<class... Args>
-    void Info  (std::string_view fmt, Args&&... args);
+    void Info  (spdlog::string_view_t fmt, Args&&... args);
     template<class... Args>
-    void Warn  (std::string_view fmt, Args&&... args);
+    void Warn  (spdlog::string_view_t fmt, Args&&... args);
     template<class... Args>
-    void Error (std::string_view fmt, Args&&... args);
+    void Error (spdlog::string_view_t fmt, Args&&... args);
 
     /// Flush sinks (called at shutdown)
     void Flush();
@@ -58,26 +58,26 @@ private:
 
 // ── Inline logging wrappers ────────────────────────────────────────────────
 template<class... Args>
-inline void LogSystem::Debug(std::string_view fmt, Args&&... args)
+inline void LogSystem::Debug(spdlog::string_view_t fmt, Args&&... args)
 {
     if (GetLogger().should_log(spdlog::level::debug))
-        GetLogger().debug(fmt, std::forward<Args>(args)...);
+        GetLogger().log(spdlog::level::debug, SPDLOG_FMT_RUNTIME(fmt), std::forward<Args>(args)...);
 }
 template<class... Args>
-inline void LogSystem::Info(std::string_view fmt, Args&&... args)
+inline void LogSystem::Info(spdlog::string_view_t fmt, Args&&... args)
 {
     if (GetLogger().should_log(spdlog::level::info))
-        GetLogger().info(fmt, std::forward<Args>(args)...);
+        GetLogger().log(spdlog::level::info, SPDLOG_FMT_RUNTIME(fmt), std::forward<Args>(args)...);
 }
 template<class... Args>
-inline void LogSystem::Warn(std::string_view fmt, Args&&... args)
+inline void LogSystem::Warn(spdlog::string_view_t fmt, Args&&... args)
 {
     if (GetLogger().should_log(spdlog::level::warn))
-        GetLogger().warn(fmt, std::forward<Args>(args)...);
+        GetLogger().log(spdlog::level::warn, SPDLOG_FMT_RUNTIME(fmt), std::forward<Args>(args)...);
 }
 template<class... Args>
-inline void LogSystem::Error(std::string_view fmt, Args&&... args)
+inline void LogSystem::Error(spdlog::string_view_t fmt, Args&&... args)
 {
     if (GetLogger().should_log(spdlog::level::err))
-        GetLogger().error(fmt, std::forward<Args>(args)...);
+        GetLogger().log(spdlog::level::err, SPDLOG_FMT_RUNTIME(fmt), std::forward<Args>(args)...);
 }
