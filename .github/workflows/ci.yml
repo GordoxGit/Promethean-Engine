@@ -93,6 +93,10 @@ jobs:
           fi
           ./bootstrap-vcpkg.sh -disableMetrics
         shell: bash
+      - name: Fetch full vcpkg history
+        run: |
+          git -C vcpkg fetch --prune --progress --depth=1000
+        shell: bash
 
       - name: Install vcpkg dependencies
         run: |
@@ -197,6 +201,10 @@ jobs:
             git pull
           fi
           ./bootstrap-vcpkg.sh -disableMetrics
+        shell: bash
+      - name: Fetch full vcpkg history
+        run: |
+          git -C vcpkg fetch --prune --progress --depth=1000
         shell: bash
 
       - name: Install vcpkg dependencies for Android
