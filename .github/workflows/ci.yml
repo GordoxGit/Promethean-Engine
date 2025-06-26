@@ -219,7 +219,6 @@ jobs:
           ANDROID_NDK_HOME: ${{ env.ANDROID_NDK_HOME }}
           VCPKG_CMAKE_SYSTEM_NAME: Android
           VCPKG_FEATURE_FLAGS: manifests
-          VCPKG_OVERLAY_PORTS: "${{ github.workspace }}/overlays/nlohmann-json-android-fix"
 
       - name: Configure CMake for Android
         run: |
@@ -232,7 +231,6 @@ jobs:
             -DVCPKG_CHAINLOAD_TOOLCHAIN_FILE="$ANDROID_TOOLCHAIN_FILE" \
             -DVCPKG_TARGET_TRIPLET="$TRIPLET" \
             -DVCPKG_INSTALLED_DIR="${{ github.workspace }}/vcpkg_installed" \
-            -DVCPKG_OVERLAY_PORTS="${{ github.workspace }}/overlays/nlohmann-json-android-fix" \
             -DANDROID_ABI="${{ matrix.abi }}" \
             -DANDROID_PLATFORM=android-21 \
             -DANDROID_STL=c++_shared \
