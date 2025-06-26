@@ -48,7 +48,7 @@ sudo apt update && sudo apt install -y \
   libsdl2-mixer-dev \
   libgl1-mesa-dev \
   libsqlite3-dev \
-  libnlohmann-json-dev (>=3.11.3) \
+  libnlohmann-json-dev (>=3.12.0) \
   lcov
 
 mkdir -p build && cd build
