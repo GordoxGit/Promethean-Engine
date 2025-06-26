@@ -11,7 +11,8 @@ namespace nlohmann {
     template<>
     struct adl_serializer<std::filesystem::path> {
         static void to_json(json& j, const std::filesystem::path& p) {
-            j = p.u8string();
+            const auto tmp = p.u8string();
+            j = std::u8string(reinterpret_cast<const char8_t*>(tmp.data()), tmp.size());
         }
         static void from_json(const json& j, std::filesystem::path& p) {
             p = std::filesystem::path(j.get<std::string>());
