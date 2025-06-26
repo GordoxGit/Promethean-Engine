@@ -203,7 +203,9 @@ endif()
 #                Spécificités de la cible Android
 # ====================================================================
 if(ANDROID)
-    target_compile_definitions(engine PRIVATE PROMETHEAN_ANDROID GRAPHICS_API_GLES JSON_ANDROID_CHAR8T_HACK)
+    target_compile_definitions(engine PRIVATE PROMETHEAN_ANDROID GRAPHICS_API_GLES)
+    target_sources(engine PUBLIC src/compat/json_android_fix.h)
+    target_compile_definitions(engine PUBLIC JSON_ANDROID_FIX=1)
 
     find_package(SDL2_mixer CONFIG REQUIRED)
 
