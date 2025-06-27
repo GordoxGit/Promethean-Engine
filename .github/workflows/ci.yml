@@ -220,6 +220,9 @@ jobs:
           VCPKG_CMAKE_SYSTEM_NAME: Android
           VCPKG_FEATURE_FLAGS: manifests
 
+      - name: Patch nlohmann-json for char8_t
+        run: ./scripts/patch-json-android.sh
+
       - name: Configure CMake for Android
         run: |
           TRIPLET="arm64-android"
