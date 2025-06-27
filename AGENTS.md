@@ -1,5 +1,4 @@
 # Repo Notes
 
-- The workaround for nlohmann-json's `char8_t` issue was removed because version 3.12 supposedly works on all platforms.
-- Android builds with NDK r25 still fail due to `std::filesystem::path::u8string()` returning `std::string`.
-- A conditional patch is reintroduced in `scripts/patch-json-android.sh` and applied during the Android CI job after vcpkg installation.
+- Version 3.12 of nlohmann-json still breaks on Android because `std::filesystem::path::u8string()` returns `std::string` when compiling with C++17.
+- We define `JSON_HAS_FILESYSTEM 1` before including `<nlohmann/json.hpp>` and patch the generated `to_json.hpp` via `scripts/patch-json-android.sh` after `vcpkg install`.
