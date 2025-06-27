@@ -3,3 +3,5 @@
 #include "ecs/Component.h"
 #include "ecs/Registry.h"
 #include "ecs/System.h"
+#include "ecs/NavComponent.h"
+#include "ecs/PathfindingSystem.h"

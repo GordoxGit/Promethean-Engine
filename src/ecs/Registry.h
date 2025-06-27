@@ -6,6 +6,7 @@
 #include <type_traits>
 #include "ecs/Component.h"
 #include "ecs/Entity.h"
+#include "ecs/NavComponent.h"
 
 namespace pe::ecs {
 
@@ -38,6 +39,7 @@ private:
     ComponentPool<Position>   m_positions;
     ComponentPool<Velocity>   m_velocities;
     ComponentPool<Renderable> m_renderables;
+    ComponentPool<NavComponent> m_navs;
 
     template<typename C>
     ComponentPool<C>& pool();
@@ -74,6 +76,7 @@ inline ComponentPool<C>& Registry::pool() {
     if constexpr (std::is_same_v<C, Position>) return m_positions;
     else if constexpr (std::is_same_v<C, Velocity>) return m_velocities;
     else if constexpr (std::is_same_v<C, Renderable>) return m_renderables;
+    else if constexpr (std::is_same_v<C, NavComponent>) return m_navs;
 }
 
 template<typename C>
@@ -81,6 +84,7 @@ inline const ComponentPool<C>& Registry::pool() const {
     if constexpr (std::is_same_v<C, Position>) return m_positions;
     else if constexpr (std::is_same_v<C, Velocity>) return m_velocities;
     else if constexpr (std::is_same_v<C, Renderable>) return m_renderables;
+    else if constexpr (std::is_same_v<C, NavComponent>) return m_navs;
 }
 
 inline size_t Registry::active() const {

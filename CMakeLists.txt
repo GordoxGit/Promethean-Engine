@@ -115,6 +115,10 @@ add_library(engine
     src/physics/CollisionLayer.cpp     src/physics/CollisionLayer.h
     # ── AI -------------------------------------------------------------------
     src/ai/Pathfinder.cpp              src/ai/Pathfinder.h
+    # ── Pathfinding ---------------------------------------------------------
+    src/pathfinding/AStar.cpp          src/pathfinding/AStar.h
+    src/ecs/NavComponent.cpp           src/ecs/NavComponent.h
+    src/ecs/PathfindingSystem.cpp      src/ecs/PathfindingSystem.h
     # ── Settings -------------------------------------------------------------
     src/core/SettingsManager.cpp       src/core/SettingsManager.h
 )
@@ -289,6 +293,8 @@ if(PROMETHEAN_BUILD_TESTS AND NOT ANDROID)
         tests/audio/TestAudioEngine.cpp
         tests/audio/TestAudioBus.cpp
         tests/ecs/TestECS.cpp
+        tests/pathfinding/TestAStar.cpp
+        tests/ecs/TestPathfindingSystem.cpp
     )
 
     file(GLOB TEST_AUDIO_FILES
