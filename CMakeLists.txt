@@ -79,6 +79,9 @@ add_library(engine
     src/core/StateStack.cpp            src/core/StateStack.h
     src/core/State.h
     # ── ECS ---------------------------------------------------------------
+    src/ecs/Entity.cpp            src/ecs/Entity.h
+    src/ecs/Registry.cpp          src/ecs/Registry.h
+    src/ecs/System.h              src/ecs/Component.h
     src/ecs/ecs.h
     # ── Renderer ────────────────────────────────────────────────────
     src/renderer/BatchRenderer.cpp     src/renderer/BatchRenderer.h
