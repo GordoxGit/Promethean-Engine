@@ -204,9 +204,6 @@ endif()
 # ====================================================================
 if(ANDROID)
     target_compile_definitions(engine PRIVATE PROMETHEAN_ANDROID GRAPHICS_API_GLES)
-    target_include_directories(engine PRIVATE src/compat)
-    target_sources(engine PRIVATE src/compat/json_android_fix.h)
-    target_compile_definitions(engine PUBLIC JSON_ANDROID_FIX=1)
 
     find_package(SDL2_mixer CONFIG REQUIRED)
 
