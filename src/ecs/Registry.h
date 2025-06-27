@@ -8,6 +8,8 @@
 #include "ecs/Entity.h"
 #include "ecs/NavComponent.h"
 
+namespace Promethean { class SaveManager; }
+
 namespace pe::ecs {
 
 class Registry {
@@ -30,6 +32,8 @@ public:
     void for_each(Fn&& fn);
 
     size_t active() const;
+
+    friend class Promethean::SaveManager;
 
 private:
     std::atomic<EntityID> m_nextId;

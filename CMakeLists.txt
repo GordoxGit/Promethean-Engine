@@ -121,6 +121,8 @@ add_library(engine
     src/ecs/PathfindingSystem.cpp      src/ecs/PathfindingSystem.h
     # ── Settings -------------------------------------------------------------
     src/core/SettingsManager.cpp       src/core/SettingsManager.h
+    # ── Save ---------------------------------------------------------------
+    src/save/SaveManager.cpp           src/save/SaveManager.h
 )
 add_library(Promethean::Engine ALIAS engine)
 
@@ -295,6 +297,7 @@ if(PROMETHEAN_BUILD_TESTS AND NOT ANDROID)
         tests/ecs/TestECS.cpp
         tests/pathfinding/TestAStar.cpp
         tests/ecs/TestPathfindingSystem.cpp
+        tests/save/TestSaveManager.cpp
     )
 
     file(GLOB TEST_AUDIO_FILES

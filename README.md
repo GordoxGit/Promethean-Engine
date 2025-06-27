@@ -114,7 +114,7 @@ git clone https://github.com/Microsoft/vcpkg.git
 - Par défaut : JSON versionné (`nlohmann::json`)
 - Option : SQLite embarqué
 - Support multi-version / migration / backup auto
-- API `SaveSystem::Save(path)`, `::Load(path)`
+- API `SaveManager::SaveToFile(path)` / `LoadFromFile(path)`
 
 ---
 

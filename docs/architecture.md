@@ -9,7 +9,7 @@ Promethean est un moteur de jeu 2D C++ basé sur SDL2 + OpenGL, orienté modular
 - **UIManager** : UI native responsive
 - **StateManager** : Système de scènes
 - **AssetLoader** : Chargement des assets
-- **SaveSystem** : JSON + SQLite
+- **SaveManager** : JSON + SQLite (persist world/ecs)
 - **ECS** : Entités, composants et systèmes
 
 ## Structure
@@ -45,5 +45,13 @@ Un overlay de debug basé sur **Dear ImGui** est intégré pour profiler et
 inspecter l'état interne du moteur en temps réel. L'affichage est activable
 via <kbd>F1</kbd> et présente les informations de base&nbsp;: FPS, nombre
 d'entités, appels de dessin et réglages audio. Des panneaux personnalisés
-peuvent être enregistrés dans le code à l'aide de `RegisterPanel()` afin
-d'étendre facilement l'interface de débogage.
+    peuvent être enregistrés dans le code à l'aide de `RegisterPanel()` afin
+    d'étendre facilement l'interface de débogage.
+
+## SaveManager
+
+Le `SaveManager` sérialise l'état complet du monde (ECS, tilemap et variables
+globales) au format **JSON** via `nlohmann::json`. Chaque composant expose les
+méthodes `ToJSON()` et `FromJSON()` pour permettre une persistance fiable. Les
+méthodes principales sont `SaveToFile(path)` et `LoadFromFile(path)` qui
+écrivent ou restaurent un fichier de sauvegarde multiplateforme.
