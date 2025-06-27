@@ -1,3 +1,3 @@
 # Repo Notes
 
-- TODO: remove `cmake/patches/nlohmann-json-char8t.patch` once nlohmann-json >= 3.11.3 works on all platforms.
+- The workaround for nlohmann-json's char8_t issue has been removed since version 3.12 works on all platforms.
