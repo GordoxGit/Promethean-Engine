@@ -28,6 +28,8 @@ public:
     template<typename... Cs, typename Fn>
     void for_each(Fn&& fn);
 
+    size_t active() const;
+
 private:
     std::atomic<EntityID> m_nextId;
     std::vector<EntityID> m_free;
@@ -79,6 +81,11 @@ inline const ComponentPool<C>& Registry::pool() const {
     if constexpr (std::is_same_v<C, Position>) return m_positions;
     else if constexpr (std::is_same_v<C, Velocity>) return m_velocities;
     else if constexpr (std::is_same_v<C, Renderable>) return m_renderables;
+}
+
+inline size_t Registry::active() const {
+    std::lock_guard<std::mutex> lock(m_mutex);
+    return static_cast<size_t>(m_nextId.load() - 1) - m_free.size();
 }
 
 } // namespace pe::ecs

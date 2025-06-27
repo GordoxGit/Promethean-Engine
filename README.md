@@ -17,6 +17,7 @@ Fonctionne sur **Windows**, **macOS**, **Linux** et **Android** (.apk), avec une
 - ⚙️ Build multiplateforme avec CMake
 - ✅ Intégration continue via GitHub Actions
 - 🔍 Logs, overlay debug & profiling en temps réel
+- 🎛 Overlay debug ImGui activable avec <kbd>F1</kbd>
 
 ---
 
