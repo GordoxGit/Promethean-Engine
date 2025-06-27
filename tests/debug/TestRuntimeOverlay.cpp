@@ -14,7 +14,7 @@ TEST(RuntimeOverlay, Init_Shutdown_NoLeak)
     SUCCEED();
 }
 
-static void pressF2()
+static void pressF1()
 {
     Toggle();
 }
@@ -23,10 +23,10 @@ TEST(RuntimeOverlay, RenderOverlay_ToggleVisibility)
 {
     Init();
     EXPECT_FALSE(IsVisible());
-    pressF2();
+    pressF1();
     RenderOverlay();
     EXPECT_TRUE(IsVisible());
-    pressF2();
+    pressF1();
     RenderOverlay();
     EXPECT_FALSE(IsVisible());
     Shutdown();
@@ -68,4 +68,15 @@ TEST(RuntimeOverlay, Performance_RenderUnderBudget)
     Shutdown();
     double avg = std::chrono::duration<double, std::micro>(end-start).count()/5.0;
     EXPECT_LT(avg, 100.0); // <0.1 ms
+}
+
+TEST(RuntimeOverlay, CustomPanel_CalledWhenVisible)
+{
+    Init();
+    bool called = false;
+    RegisterPanel([&]{ called = true; });
+    Toggle();
+    RenderOverlay();
+    EXPECT_TRUE(called);
+    Shutdown();
 }

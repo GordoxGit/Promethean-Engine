@@ -2,7 +2,6 @@
   "name": "promethean-engine",
   "version-string": "0.1.0",
   "description": "Minimal 2D engine using SDL2",
-  "builtin-baseline": "ef7dbf94b9198bc58f45951adcf1f041fcbc5ea0",
   "dependencies": [
     "sdl2",
     {
@@ -28,6 +27,7 @@
     },
     "glm",
     "tinyxml2",
+    "imgui",
     {
       "name": "gtest",
       "platform": "!android"

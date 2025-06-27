@@ -31,3 +31,12 @@ Le moteur s'appuie sur un **Entity Component System** minimal. Le `Registry`
 gère la création et destruction d'entités ainsi que l'attachement de
 composants. Les `System` parcourent les entités ayant un ensemble de
 composants précis et mettent à jour leur logique chaque frame.
+
+## Debug & ImGui
+
+Un overlay de debug basé sur **Dear ImGui** est intégré pour profiler et
+inspecter l'état interne du moteur en temps réel. L'affichage est activable
+via <kbd>F1</kbd> et présente les informations de base&nbsp;: FPS, nombre
+d'entités, appels de dessin et réglages audio. Des panneaux personnalisés
+peuvent être enregistrés dans le code à l'aide de `RegisterPanel()` afin
+d'étendre facilement l'interface de débogage.

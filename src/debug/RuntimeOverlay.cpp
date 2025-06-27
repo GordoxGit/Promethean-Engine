@@ -4,6 +4,7 @@
 #include "core/SettingsManager.h"
 #include "renderer/BatchRenderer.h"
 #include <SDL.h>
+#include <vector>
 
 #ifdef PE_IMGUI_ENABLED
 #include "imgui.h"
@@ -14,11 +15,13 @@
 namespace pe::debug {
 
 static bool s_visible = false;
-static bool s_prevF2 = false;
+static bool s_prevF1 = false;
 #ifdef PE_IMGUI_ENABLED
 static bool s_initialized = false;
 static uint64_t s_lastTime = 0;
 #endif
+static std::vector<PanelCallback> s_panels;
+static pe::ecs::Registry* s_registry = nullptr;
 
 void Init(ImGuiContext* shared)
 {
@@ -50,10 +53,10 @@ void Init(ImGuiContext* shared)
 
 void RenderOverlay()
 {
-    bool f2 = SDL_GetKeyboardState(nullptr)[SDL_SCANCODE_F2];
-    if (f2 && !s_prevF2)
+    bool f1 = SDL_GetKeyboardState(nullptr)[SDL_SCANCODE_F1];
+    if (f1 && !s_prevF1)
         s_visible = !s_visible;
-    s_prevF2 = f2;
+    s_prevF1 = f1;
 #ifdef PE_IMGUI_ENABLED
     if (!s_initialized || !s_visible)
         return;
@@ -70,6 +73,8 @@ void RenderOverlay()
     ImGui::Text("FPS: %.1f", fps);
     ImGui::Text("Frame: %.2f ms", dt * 1000.f);
     ImGui::Text("Draw calls: %d", BatchRenderer::GetDrawCallCount());
+    size_t ent = s_registry ? s_registry->active() : 0;
+    ImGui::Text("Entities: %zu", ent);
     ImGui::Text("VRAM approx: %.1f MB", 0.0f);
     if (ImGui::CollapsingHeader("Audio")) {
         int bgm = AudioEngine::Instance().getBusVolume(AudioBus::BGM);
@@ -89,6 +94,8 @@ void RenderOverlay()
         }
     }
     ImGui::End();
+    for(auto& cb : s_panels)
+        cb();
 
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
@@ -106,6 +113,21 @@ void Shutdown()
     s_initialized = false;
 #endif
 }
+
+#ifdef PE_IMGUI_ENABLED
+void RegisterPanel(PanelCallback cb)
+{
+    s_panels.push_back(std::move(cb));
+}
+
+void SetRegistry(pe::ecs::Registry* reg)
+{
+    s_registry = reg;
+}
+#else
+void RegisterPanel(PanelCallback) {}
+void SetRegistry(pe::ecs::Registry*) {}
+#endif
 
 #ifdef TESTING
 bool IsVisible() { return s_visible; }
