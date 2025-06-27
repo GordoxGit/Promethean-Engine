@@ -58,8 +58,12 @@ void RenderOverlay()
         s_visible = !s_visible;
     s_prevF1 = f1;
 #ifdef PE_IMGUI_ENABLED
-    if (!s_initialized || !s_visible)
+    if (!s_initialized)
         return;
+#endif
+    if (!s_visible)
+        return;
+#ifdef PE_IMGUI_ENABLED
     uint64_t now = SDL_GetPerformanceCounter();
     float dt = float(now - s_lastTime) / SDL_GetPerformanceFrequency();
     s_lastTime = now;
@@ -94,9 +98,12 @@ void RenderOverlay()
         }
     }
     ImGui::End();
+#endif
+
     for(auto& cb : s_panels)
         cb();
 
+#ifdef PE_IMGUI_ENABLED
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 #endif
@@ -114,7 +121,6 @@ void Shutdown()
 #endif
 }
 
-#ifdef PE_IMGUI_ENABLED
 void RegisterPanel(PanelCallback cb)
 {
     s_panels.push_back(std::move(cb));
@@ -124,10 +130,6 @@ void SetRegistry(pe::ecs::Registry* reg)
 {
     s_registry = reg;
 }
-#else
-void RegisterPanel(PanelCallback) {}
-void SetRegistry(pe::ecs::Registry*) {}
-#endif
 
 #ifdef TESTING
 bool IsVisible() { return s_visible; }
