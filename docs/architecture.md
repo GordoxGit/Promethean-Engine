@@ -32,6 +32,13 @@ gère la création et destruction d'entités ainsi que l'attachement de
 composants. Les `System` parcourent les entités ayant un ensemble de
 composants précis et mettent à jour leur logique chaque frame.
 
+## Pathfinding
+
+Un module minimal d'**A\*** calcule des chemins sur une grille 2D. Le
+`NavComponent` stocke la position courante, la destination et le chemin
+résultant. Le `PathfindingSystem` actualise ces entités à chaque tick en
+avançant vers la cellule suivante.
+
 ## Debug & ImGui
 
 Un overlay de debug basé sur **Dear ImGui** est intégré pour profiler et
