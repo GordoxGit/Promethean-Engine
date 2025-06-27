@@ -1,4 +1,5 @@
 #pragma once
+#define JSON_HAS_FILESYSTEM 1
 #include <nlohmann/json.hpp>
 #include <SDL_mixer.h>
 #include <string>
