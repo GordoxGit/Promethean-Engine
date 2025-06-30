@@ -12,6 +12,7 @@ Fonctionne sur **Windows**, **macOS**, **Linux** et **Android** (.apk), avec une
 - 🎮 Gestion complète des entrées (clavier, souris, multitouch)
 - 🔄 Système de scènes/states avec transitions et événements
 - 💾 Sauvegarde JSON versionnée (+ SQLite support optionnel)
+- 🛠 Éditeur de monde minimal (export/import JSON)
 - 🔊 Gestion audio avec SDL_mixer
 - 🧪 Tests unitaires (Google Test)
 - ⚙️ Build multiplateforme avec CMake
