@@ -96,6 +96,7 @@ git clone https://github.com/Microsoft/vcpkg.git
 - Textures optimisées (atlas), sprites batchés
 - DPI-aware et responsive (Android & PC)
 - `UIElement` abstrait, `UIButton`, `UISlider`, `UITextLabel`
+- Système de menus in-game minimal (UIManager, fenêtres empilées)
 - Layout manager, layering UI, gestion tactile/souris
 
 ---
