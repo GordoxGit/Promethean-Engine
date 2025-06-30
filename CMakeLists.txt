@@ -351,6 +351,12 @@ install(TARGETS engine
 
 install(DIRECTORY src/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/promethean FILES_MATCHING PATTERN "*.h")
 
+install(DIRECTORY assets/sample_project
+        DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/promethean)
+
+install(FILES README.md docs/GettingStarted.md
+        DESTINATION ${CMAKE_INSTALL_DOCDIR})
+
 if(TARGET promethean)
     install(TARGETS promethean DESTINATION ${CMAKE_INSTALL_BINDIR})
 endif()

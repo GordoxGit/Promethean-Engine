@@ -262,3 +262,13 @@ To load a Tiled map at runtime:
 ```bash
 ./promethean --map=path/to/level.tmx
 ```
+
+## Packaging release
+
+Run the helper script to produce a distributable archive for your platform:
+
+```bash
+scripts/release.sh
+```
+
+Packages will be generated in `build-release` and include the sample assets and documentation.
