@@ -106,6 +106,10 @@ add_library(engine
     src/ui/HorizontalLayout.cpp        src/ui/HorizontalLayout.h
     src/ui/VerticalLayout.cpp          src/ui/VerticalLayout.h
     src/ui/Slider.cpp                  src/ui/Slider.h
+    src/ui/UIManager.cpp               src/ui/UIManager.h
+    src/ui/UIWindow.cpp                src/ui/UIWindow.h
+    src/ui/UIButton.cpp                src/ui/UIButton.h
+    src/ui/UIOverlay.cpp               src/ui/UIOverlay.h
     src/ui/WidgetContainer.h
     src/ui/Widget.h
     # ── Assets ---------------------------------------------------------------
@@ -294,6 +298,7 @@ if(PROMETHEAN_BUILD_TESTS AND NOT ANDROID)
         tests/ui/TestButton.cpp
         tests/ui/TestLayout.cpp
         tests/ui/TestSlider.cpp
+        tests/ui/TestUIManager.cpp
         tests/audio/TestAudioEngine.cpp
         tests/audio/TestAudioBus.cpp
         tests/ecs/TestECS.cpp

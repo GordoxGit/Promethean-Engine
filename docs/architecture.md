@@ -7,6 +7,7 @@ Promethean est un moteur de jeu 2D C++ basé sur SDL2 + OpenGL, orienté modular
 - **Renderer** : OpenGL batching, sprites
 - **InputHandler** : Clavier, souris, touch
 - **UIManager** : UI native responsive
+- **UIOverlay** : empilement de fenêtres (menus, popups)
 - **StateManager** : Système de scènes
 - **AssetLoader** : Chargement des assets
 - **SaveManager** : JSON + SQLite (persist world/ecs)
@@ -45,7 +46,15 @@ Un **BehaviorSystem** minimal gère l'IA des entités via une petite machine à
 états. Le `BehaviorComponent` stocke l'état courant (Idle, Seek…) ainsi que les
 paramètres de transition. Chaque tick, le système met à jour la minuterie et fait
 évoluer l'état, par exemple en déplaçant l'entité vers une cible lorsque l'état
+
 `Seek` est actif.
+
+## UI / Overlays
+
+Le moteur inclut un système d'interfaces gérées par `UIManager`. Les fenêtres
+(`UIWindow`) peuvent être empilées pour créer des menus ou des popups.
+Chaque `UIButton` déclenche un callback lors du clic et les overlays sont
+ajoutés à la `StateStack` afin d'apparaître au-dessus du jeu.
 
 ## Debug & ImGui
 
