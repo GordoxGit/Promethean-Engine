@@ -24,6 +24,10 @@ nlohmann::json SaveManager::Serialize(const Registry& reg, Entity entity) {
         const auto* c = reg.pool<NavComponent>().try_get(entity.id());
         j["NavComponent"] = c->ToJSON();
     }
+    if(reg.has<BehaviorComponent>(entity.id())) {
+        const auto* c = reg.pool<BehaviorComponent>().try_get(entity.id());
+        j["BehaviorComponent"] = c->ToJSON();
+    }
     return j;
 }
 
@@ -44,6 +48,10 @@ void SaveManager::Deserialize(Registry& reg, Entity entity, const nlohmann::json
         auto& c = reg.add<NavComponent>(entity.id());
         c.FromJSON(*it);
     }
+    if(auto it = data.find("BehaviorComponent"); it != data.end()) {
+        auto& c = reg.add<BehaviorComponent>(entity.id());
+        c.FromJSON(*it);
+    }
 }
 
 bool SaveManager::SaveToFile(const std::string& path, const Registry& reg) {
@@ -54,6 +62,7 @@ bool SaveManager::SaveToFile(const std::string& path, const Registry& reg) {
     for(auto id : reg.pool<Velocity>().entities()) ids.insert(id);
     for(auto id : reg.pool<Renderable>().entities()) ids.insert(id);
     for(auto id : reg.pool<NavComponent>().entities()) ids.insert(id);
+    for(auto id : reg.pool<BehaviorComponent>().entities()) ids.insert(id);
     for(EntityID id : ids) {
         root["entities"].push_back(Serialize(reg, Entity{const_cast<Registry*>(&reg), id}));
     }

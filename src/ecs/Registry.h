@@ -7,6 +7,7 @@
 #include "ecs/Component.h"
 #include "ecs/Entity.h"
 #include "ecs/NavComponent.h"
+#include "ecs/BehaviorComponent.h"
 
 namespace Promethean { class SaveManager; }
 
@@ -44,6 +45,7 @@ private:
     ComponentPool<Velocity>   m_velocities;
     ComponentPool<Renderable> m_renderables;
     ComponentPool<NavComponent> m_navs;
+    ComponentPool<BehaviorComponent> m_behaviors;
 
     template<typename C>
     ComponentPool<C>& pool();
@@ -81,6 +83,7 @@ inline ComponentPool<C>& Registry::pool() {
     else if constexpr (std::is_same_v<C, Velocity>) return m_velocities;
     else if constexpr (std::is_same_v<C, Renderable>) return m_renderables;
     else if constexpr (std::is_same_v<C, NavComponent>) return m_navs;
+    else if constexpr (std::is_same_v<C, BehaviorComponent>) return m_behaviors;
 }
 
 template<typename C>
@@ -89,6 +92,7 @@ inline const ComponentPool<C>& Registry::pool() const {
     else if constexpr (std::is_same_v<C, Velocity>) return m_velocities;
     else if constexpr (std::is_same_v<C, Renderable>) return m_renderables;
     else if constexpr (std::is_same_v<C, NavComponent>) return m_navs;
+    else if constexpr (std::is_same_v<C, BehaviorComponent>) return m_behaviors;
 }
 
 inline size_t Registry::active() const {

@@ -25,6 +25,7 @@ void Registry::destroy(EntityID id) {
     m_velocities.remove(id);
     m_renderables.remove(id);
     m_navs.remove(id);
+    m_behaviors.remove(id);
     m_free.push_back(id);
 }
 

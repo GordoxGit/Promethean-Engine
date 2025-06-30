@@ -39,6 +39,14 @@ Un module minimal d'**A\*** calcule des chemins sur une grille 2D. Le
 résultant. Le `PathfindingSystem` actualise ces entités à chaque tick en
 avançant vers la cellule suivante.
 
+## Behavior
+
+Un **BehaviorSystem** minimal gère l'IA des entités via une petite machine à
+états. Le `BehaviorComponent` stocke l'état courant (Idle, Seek…) ainsi que les
+paramètres de transition. Chaque tick, le système met à jour la minuterie et fait
+évoluer l'état, par exemple en déplaçant l'entité vers une cible lorsque l'état
+`Seek` est actif.
+
 ## Debug & ImGui
 
 Un overlay de debug basé sur **Dear ImGui** est intégré pour profiler et

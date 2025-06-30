@@ -119,6 +119,8 @@ add_library(engine
     src/pathfinding/AStar.cpp          src/pathfinding/AStar.h
     src/ecs/NavComponent.cpp           src/ecs/NavComponent.h
     src/ecs/PathfindingSystem.cpp      src/ecs/PathfindingSystem.h
+    src/ecs/BehaviorComponent.cpp      src/ecs/BehaviorComponent.h
+    src/ecs/BehaviorSystem.cpp         src/ecs/BehaviorSystem.h
     # ── Settings -------------------------------------------------------------
     src/core/SettingsManager.cpp       src/core/SettingsManager.h
     # ── Save ---------------------------------------------------------------
@@ -297,6 +299,7 @@ if(PROMETHEAN_BUILD_TESTS AND NOT ANDROID)
         tests/ecs/TestECS.cpp
         tests/pathfinding/TestAStar.cpp
         tests/ecs/TestPathfindingSystem.cpp
+        tests/ecs/TestBehaviorSystem.cpp
         tests/save/TestSaveManager.cpp
     )
 
