@@ -72,3 +72,10 @@ globales) au format **JSON** via `nlohmann::json`. Chaque composant expose les
 méthodes `ToJSON()` et `FromJSON()` pour permettre une persistance fiable. Les
 méthodes principales sont `SaveToFile(path)` et `LoadFromFile(path)` qui
 écrivent ou restaurent un fichier de sauvegarde multiplateforme.
+
+## World/Map Editor
+
+Un éditeur minimal de monde permet de créer rapidement une carte 2D. Il gère
+une tilemap unique modifiable à la souris via une interface rudimentaire.
+L'éditeur peut exporter ou importer la carte au format JSON afin d'être chargé
+par le moteur via `AssetManager`.

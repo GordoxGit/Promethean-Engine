@@ -129,6 +129,10 @@ add_library(engine
     src/core/SettingsManager.cpp       src/core/SettingsManager.h
     # ── Save ---------------------------------------------------------------
     src/save/SaveManager.cpp           src/save/SaveManager.h
+    # ── Editor -------------------------------------------------------------
+    src/editor/WorldEditor.cpp         src/editor/WorldEditor.h
+    src/editor/EditorUI.cpp            src/editor/EditorUI.h
+    src/editor/EditorState.cpp         src/editor/EditorState.h
 )
 add_library(Promethean::Engine ALIAS engine)
 
@@ -306,6 +310,7 @@ if(PROMETHEAN_BUILD_TESTS AND NOT ANDROID)
         tests/ecs/TestPathfindingSystem.cpp
         tests/ecs/TestBehaviorSystem.cpp
         tests/save/TestSaveManager.cpp
+        tests/editor/TestWorldEditor.cpp
     )
 
     file(GLOB TEST_AUDIO_FILES
