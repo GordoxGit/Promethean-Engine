@@ -78,6 +78,16 @@ git clone https://github.com/Microsoft/vcpkg.git
 ./vcpkg/vcpkg install --x-manifest-root=.
 ```
 
+### Modern CMake include pattern
+
+Les cibles suivent le schéma Modern CMake afin de ne jamais exposer de
+chemins absolus provenant du répertoire source lorsqu'elles sont installées.
+Les en-têtes du moteur sont donc visibles seulement pendant la compilation
+locale via `BUILD_INTERFACE`, puis référencés simplement depuis `include/` une fois
+installés. Sur macOS et Android, ce chemin de source n'est jamais ajouté à
+l'interface publique.
+
+
 ---
 
 ## 🧪 Tests & CI
