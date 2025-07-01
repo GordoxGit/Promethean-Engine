@@ -148,6 +148,14 @@ git clone https://github.com/Microsoft/vcpkg.git
 
 ---
 
+## 📜 Scripting (Lua)
+
+- Intégration minimale de Lua via `ScriptingManager`
+- API disponible côté script : `create_entity`, `add_position`, `log_info`
+- Exemple de script dans `assets/scripts/test_agent.lua`
+
+---
+
 ## 📦 Compilation Android
 
 - Build via **CMake + Android NDK**

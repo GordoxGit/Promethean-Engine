@@ -79,3 +79,10 @@ Un éditeur minimal de monde permet de créer rapidement une carte 2D. Il gère
 une tilemap unique modifiable à la souris via une interface rudimentaire.
 L'éditeur peut exporter ou importer la carte au format JSON afin d'être chargé
 par le moteur via `AssetManager`.
+
+## Scripting Lua
+
+Un module `ScriptingManager` charge des scripts Lua externes. Il expose une API
+très simple pour créer des entités et modifier leurs composants depuis un
+script. Les fonctions disponibles sont `create_entity`, `add_position` et
+`log_info`. Un script d'exemple est fourni dans `assets/scripts/test_agent.lua`.

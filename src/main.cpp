@@ -1,4 +1,6 @@
 #include "core/Engine.h"
+#include "ecs/ecs.h"
+#include "scripting/ScriptingManager.h"
 
 #ifndef PROMETHEAN_ANDROID_CI
     #include <spdlog/spdlog.h>
@@ -38,7 +40,13 @@ int main(int argc, char* argv[]) {
         (void)map;
     }
 
+    pe::ecs::Registry registry;
+    pe::scripting::ScriptingManager::Instance().Init(&registry);
+    pe::scripting::ScriptingManager::Instance().RunScript("assets/scripts/test_agent.lua");
+
     engine.Run();
+
+    pe::scripting::ScriptingManager::Instance().Shutdown();
 
     engine.Shutdown();
     return 0;
