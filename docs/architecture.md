@@ -20,6 +20,13 @@ Promethean est un moteur de jeu 2D C++ basé sur SDL2 + OpenGL, orienté modular
 - `platform/` : code Android/Windows
 - `tests/` : Google Test
 
+### CMake
+
+La génération utilise le pattern Modern CMake : les includes publics sont
+exposés avec `BUILD_INTERFACE` uniquement lors de la compilation locale et
+remplacés par `INSTALL_INTERFACE` une fois le moteur installé. Aucun chemin
+absolu du répertoire source n'apparaît dans les cibles exportées.
+
 ## Principes
 
 - 100 % modulaire
