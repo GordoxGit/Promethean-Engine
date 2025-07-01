@@ -60,6 +60,7 @@ find_package(spdlog        CONFIG REQUIRED)
 find_package(glm           CONFIG REQUIRED)
 find_package(nlohmann_json CONFIG REQUIRED)
 find_package(tinyxml2      CONFIG REQUIRED)
+find_package(Lua REQUIRED)
 
 if(NOT ANDROID)                                     # extensions SDL2 uniquement desktop
     find_package(SDL2_image CONFIG REQUIRED)
@@ -133,6 +134,8 @@ add_library(engine
     src/editor/WorldEditor.cpp         src/editor/WorldEditor.h
     src/editor/EditorUI.cpp            src/editor/EditorUI.h
     src/editor/EditorState.cpp         src/editor/EditorState.h
+    # ── Scripting -----------------------------------------------------------
+    src/scripting/ScriptingManager.cpp src/scripting/ScriptingManager.h
 )
 add_library(Promethean::Engine ALIAS engine)
 
@@ -140,6 +143,7 @@ target_include_directories(engine
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
         $<INSTALL_INTERFACE:include>
+        ${LUA_INCLUDE_DIR}
 )
 
 # --------------------------------------------------------------------
@@ -186,6 +190,7 @@ target_link_libraries(engine
         spdlog::spdlog
         glm::glm
         tinyxml2::tinyxml2
+        ${LUA_LIBRARIES}
         $<$<NOT:$<BOOL:${ANDROID}>>:                 # ⇐ extensions uniquement desktop
             $<$<TARGET_EXISTS:SDL2_image::SDL2_image>:SDL2_image::SDL2_image>
             $<$<NOT:$<TARGET_EXISTS:SDL2_image::SDL2_image>>:SDL2_image::SDL2_image-static>
@@ -311,12 +316,16 @@ if(PROMETHEAN_BUILD_TESTS AND NOT ANDROID)
         tests/ecs/TestBehaviorSystem.cpp
         tests/save/TestSaveManager.cpp
         tests/editor/TestWorldEditor.cpp
+        tests/scripting/TestScripting.cpp
     )
 
     file(GLOB TEST_AUDIO_FILES
         ${CMAKE_SOURCE_DIR}/tests/assets/audio/*)
     file(COPY ${TEST_AUDIO_FILES}
         DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/assets/audio)
+    file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/assets/scripts)
+    file(COPY assets/scripts/test_agent.lua
+        DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/assets/scripts)
 
     if(USE_SDL_STUBS)
         target_sources(engine_tests PRIVATE tests/mocks/SDL_mixer_stubs.cpp)

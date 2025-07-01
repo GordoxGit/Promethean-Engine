@@ -28,6 +28,7 @@
     },
     "glm",
     "tinyxml2",
+    "lua",
     "imgui",
     {
       "name": "gtest",
