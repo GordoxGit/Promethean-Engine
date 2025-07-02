@@ -22,10 +22,11 @@ Promethean est un moteur de jeu 2D C++ basé sur SDL2 + OpenGL, orienté modular
 
 ### CMake
 
-La génération utilise le pattern Modern CMake : les includes publics sont
-exposés avec `BUILD_INTERFACE` uniquement lors de la compilation locale et
-remplacés par `INSTALL_INTERFACE` une fois le moteur installé. Aucun chemin
-absolu du répertoire source n'apparaît dans les cibles exportées.
+La génération suit le pattern Modern CMake. Le dossier `src/` est inclus en
+`PRIVATE` pour la compilation de toutes les plateformes afin que les modules du
+moteur accèdent à leurs en-têtes internes. L'interface publique n'expose que le
+répertoire `include/` via `INSTALL_INTERFACE`, évitant tout chemin absolu dans
+les cibles exportées.
 
 ## Principes
 
