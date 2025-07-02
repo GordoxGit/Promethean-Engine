@@ -28,6 +28,10 @@ moteur accèdent à leurs en-têtes internes. L'interface publique n'expose que 
 répertoire `include/` via `INSTALL_INTERFACE`, évitant tout chemin absolu dans
 les cibles exportées.
 
+Les exécutables locaux et la suite de tests ajoutent explicitement ce même
+chemin `src/` via `target_include_directories()` pour inclure directement les
+en-têtes internes.
+
 ## Principes
 
 - 100 % modulaire

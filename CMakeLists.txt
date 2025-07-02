@@ -268,6 +268,9 @@ endif()
 # ====================================================================
 if(NOT ANDROID OR PROMETHEAN_BUILD_EXAMPLES)
     add_executable(promethean src/main.cpp)
+    target_include_directories(promethean PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/src
+    )
     target_link_libraries(promethean PRIVATE Promethean::Engine)
 
     set_target_properties(promethean PROPERTIES
@@ -320,6 +323,10 @@ if(PROMETHEAN_BUILD_TESTS AND NOT ANDROID)
         tests/save/TestSaveManager.cpp
         tests/editor/TestWorldEditor.cpp
         tests/scripting/TestScripting.cpp
+    )
+
+    target_include_directories(engine_tests PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/src
     )
 
     file(GLOB TEST_AUDIO_FILES

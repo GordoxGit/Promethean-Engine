@@ -86,6 +86,10 @@ installés. Pendant la compilation locale, le dossier `src/` est ajouté en
 fuir dans l'interface publique. Une fois installée ou exportée, seule la
 référence `include/` est visible via `INSTALL_INTERFACE`.
 
+Les exécutables de démonstration et les tests ajoutent eux-mêmes ce chemin via
+`target_include_directories()` afin de pouvoir inclure directement les modules
+du moteur (`core/`, `ecs/`, etc.).
+
 
 ---
 
