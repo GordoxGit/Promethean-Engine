@@ -11,6 +11,7 @@ public:
 
     /** Render the overlay UI. */
     void Render();
+    void ShowPlugins();
 
 private:
     WorldEditor* m_editor{nullptr};

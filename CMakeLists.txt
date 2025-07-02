@@ -136,6 +136,8 @@ add_library(engine
     src/editor/EditorState.cpp         src/editor/EditorState.h
     # ── Scripting -----------------------------------------------------------
     src/scripting/ScriptingManager.cpp src/scripting/ScriptingManager.h
+    # ── Plugins -------------------------------------------------------------
+    src/plugin/PluginManager.cpp       src/plugin/PluginManager.h
 )
 add_library(Promethean::Engine ALIAS engine)
 
@@ -323,6 +325,7 @@ if(PROMETHEAN_BUILD_TESTS AND NOT ANDROID)
         tests/save/TestSaveManager.cpp
         tests/editor/TestWorldEditor.cpp
         tests/scripting/TestScripting.cpp
+        tests/scripting/TestPluginManager.cpp
     )
 
     target_include_directories(engine_tests PRIVATE
@@ -336,6 +339,9 @@ if(PROMETHEAN_BUILD_TESTS AND NOT ANDROID)
     file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/assets/scripts)
     file(COPY assets/scripts/test_agent.lua
         DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/assets/scripts)
+    file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/plugins)
+    file(COPY plugins/spawn_entity.lua
+        DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/plugins)
 
     if(USE_SDL_STUBS)
         target_sources(engine_tests PRIVATE tests/mocks/SDL_mixer_stubs.cpp)
@@ -375,7 +381,7 @@ install(DIRECTORY include/promethean/
 install(DIRECTORY assets/sample_project
         DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/promethean)
 
-install(FILES README.md docs/GettingStarted.md docs/FAQ.md
+install(FILES README.md docs/GettingStarted.md docs/FAQ.md docs/Extensions.md
         DESTINATION ${CMAKE_INSTALL_DOCDIR})
 
 if(TARGET promethean)
