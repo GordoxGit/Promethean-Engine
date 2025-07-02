@@ -139,25 +139,15 @@ add_library(engine
 )
 add_library(Promethean::Engine ALIAS engine)
 
-if(NOT APPLE AND NOT ANDROID)
-    # When building locally, expose the source include directory.
-    # Installed/exported targets must not contain absolute paths.
-    target_include_directories(engine
-        PUBLIC
-            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
-            $<INSTALL_INTERFACE:include>
-        PRIVATE
-            ${LUA_INCLUDE_DIR}
-    )
-else()
-    # On macOS/Android, never leak the source directory in INTERFACE includes.
-    target_include_directories(engine
-        PUBLIC
-            $<INSTALL_INTERFACE:include>
-        PRIVATE
-            ${LUA_INCLUDE_DIR}
-    )
-endif()
+# Always add the source directory privately for local builds. Only the
+# install interface exposes the public headers.
+target_include_directories(engine
+    PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/src
+        ${LUA_INCLUDE_DIR}
+    PUBLIC
+        $<INSTALL_INTERFACE:include>
+)
 
 # --------------------------------------------------------------------
 # Gestion explicite de SDL2 (core + main) pour éviter les alias manquants
