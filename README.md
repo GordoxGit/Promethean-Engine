@@ -247,7 +247,10 @@ int main() {
 - `/docs/architecture.md` : diagrammes, architecture du moteur
 - `README.md` : ce fichier
 - Documentation générée avec **Doxygen**
+- `doxygen Doxyfile` produit la doc HTML dans `docs/api`
 - Diagrammes en PlantUML ou ASCII
+- `docs/GettingStarted.md` : guide d'installation rapide
+- `docs/FAQ.md` : questions fréquentes
 
 ---
 
