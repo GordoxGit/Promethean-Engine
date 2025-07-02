@@ -19,3 +19,11 @@ Run the engine with the sample assets:
 ```
 
 The `/assets/sample_project` folder contains demo data you can experiment with.
+
+To generate the API documentation run:
+
+```bash
+doxygen Doxyfile
+```
+
+HTML files will be created in `docs/api`.

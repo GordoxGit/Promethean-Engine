@@ -368,12 +368,14 @@ install(TARGETS engine
         ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
         RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 
-install(DIRECTORY src/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/promethean FILES_MATCHING PATTERN "*.h")
+install(DIRECTORY include/promethean/
+        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/promethean
+        FILES_MATCHING PATTERN "*.h")
 
 install(DIRECTORY assets/sample_project
         DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/promethean)
 
-install(FILES README.md docs/GettingStarted.md
+install(FILES README.md docs/GettingStarted.md docs/FAQ.md
         DESTINATION ${CMAKE_INSTALL_DOCDIR})
 
 if(TARGET promethean)
