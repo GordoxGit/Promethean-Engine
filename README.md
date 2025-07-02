@@ -1,5 +1,10 @@
 # Promethean Engine 🚀
 
+[![CI](https://github.com/GordoxGit/Promethean-Engine/actions/workflows/ci.yml/badge.svg)](https://github.com/GordoxGit/Promethean-Engine/actions/workflows/ci.yml)
+[![Docs](https://img.shields.io/badge/docs-latest-blue)](docs/)
+[![Coverage](https://img.shields.io/badge/coverage-unknown-lightgrey)](#)
+[![Release](https://img.shields.io/github/v/release/GordoxGit/Promethean-Engine)](https://github.com/GordoxGit/Promethean-Engine/releases)
+
 Un **moteur de jeu 2D natif, modulaire et multiplateforme**, écrit en **C++17/C++20** avec **SDL2 + OpenGL 3.3+**, conçu pour être utilisé dans des projets de jeux de stratégie, simulation ou systèmes orientés UI.
 Fonctionne sur **Windows**, **macOS**, **Linux** et **Android** (.apk), avec une structure modulaire, testable, évolutive, et intégrée à un pipeline CI/CD complet.
 
@@ -257,6 +262,7 @@ int main() {
 - Diagrammes en PlantUML ou ASCII
 - `docs/GettingStarted.md` : guide d'installation rapide
 - `docs/FAQ.md` : questions fréquentes
+- `docs/QA_MATRIX.md` : matrice de validation des plateformes
 
 ---
 
@@ -301,4 +307,4 @@ Run the helper script to produce a distributable archive for your platform:
 scripts/release.sh
 ```
 
-Packages will be generated in `build-release` and include the sample assets and documentation.
+Packages will be generated in `build-release` and include the sample assets and documentation. Use these archives to publish the **1.0.0** release on GitHub.

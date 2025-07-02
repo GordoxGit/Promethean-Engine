@@ -4,7 +4,7 @@ cmake_minimum_required(VERSION 3.22)
 #                   Configuration du projet
 # ====================================================================
 project(PrometheanEngine
-    VERSION     0.1.0
+    VERSION     1.0.0
     DESCRIPTION "Minimal 2D engine using SDL2"
     LANGUAGES   CXX
 )
