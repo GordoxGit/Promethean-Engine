@@ -167,6 +167,12 @@ du moteur (`core/`, `ecs/`, etc.).
 - API disponible côté script : `create_entity`, `add_position`, `log_info`
 - Exemple de script dans `assets/scripts/test_agent.lua`
 
+## 🔌 Extensions & Plugins
+
+- Les scripts Lua placés dans le dossier `plugins/` sont chargés à l'exécution.
+- `PluginManager` scanne ce répertoire et exécute chaque fichier `.lua`.
+- Un exemple de plugin est disponible dans `plugins/spawn_entity.lua`.
+
 ---
 
 ## 📦 Compilation Android
