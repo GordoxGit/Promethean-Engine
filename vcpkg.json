@@ -2,6 +2,7 @@
   "name": "promethean-engine",
   "version-string": "1.0.0",
   "description": "Minimal 2D engine using SDL2",
+  "builtin-baseline": "031ad89ce6c575df35a8e58707ad2c898446c63e",
   "dependencies": [
     "sdl2",
     {
